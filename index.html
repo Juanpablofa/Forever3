@@ -3,42 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Pedidos Forever</title>
+    <title>Sistema de Gestión de Gastos del Hogar</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #2196F3;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
+            --primary-color: #6a1b9a; /* Morado principal */
+            --secondary-color: #ab47bc; /* Morado claro */
+            --danger-color: #e53935; /* Rojo */
+            --warning-color: #ffb300; /* Amarillo */
+            --success-color: #43a047; /* Verde */
+            --info-color: #0288d1; /* Azul */
             --light-gray: #f5f5f5;
             --dark-gray: #333;
             --border-radius: 8px;
             --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --background-color: #f3e5f5; /* Morado pastel claro */
+            --container-bg: rgba(255, 255, 255, 0.9);
         }
         
         * {
             box-sizing: border-box;
         }
         
-        body { 
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0;
             padding: 10px;
-            background: var(--light-gray);
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 50%, #ce93d8 100%);
             color: var(--dark-gray);
             font-size: 14px;
             line-height: 1.5;
+            min-height: 100vh;
         }
         
         .container { 
             max-width: 100%;
             margin: 0 auto; 
-            background: white; 
+            background: var(--container-bg);
             padding: 15px; 
             border-radius: var(--border-radius); 
-            box-shadow: var(--box-shadow); 
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(5px);
         }
         
         h1, h2, h3, h4 {
@@ -49,15 +55,18 @@
         h1 {
             font-size: 1.8rem;
             margin-bottom: 20px;
+            color: var(--primary-color);
         }
         
         h2 {
             font-size: 1.4rem;
             margin-bottom: 15px;
+            color: var(--primary-color);
         }
         
         h3 {
             font-size: 1.2rem;
+            color: var(--secondary-color);
         }
         
         h4 {
@@ -93,6 +102,12 @@
             font-weight: bold; 
             font-size: 0.9rem;
             white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
         
         .btn-primary { 
@@ -112,6 +127,16 @@
         
         .btn-warning { 
             background-color: var(--warning-color); 
+            color: white; 
+        }
+        
+        .btn-success { 
+            background-color: var(--success-color); 
+            color: white; 
+        }
+        
+        .btn-info { 
+            background-color: var(--info-color); 
             color: white; 
         }
         
@@ -158,6 +183,7 @@
             padding: 15px; 
             border: 1px solid #e0e0e0; 
             border-radius: var(--border-radius); 
+            background-color: white;
         }
         
         .total-row { 
@@ -229,7 +255,7 @@
         }
         
         .success { 
-            color: var(--primary-color); 
+            color: var(--success-color); 
             font-weight: bold; 
         }
         
@@ -326,6 +352,18 @@
             justify-content: center;
         }
         
+        .date-group-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .date-group-header td {
+            border-top: 2px solid #ddd;
+            border-bottom: 2px solid #ddd;
+        }
+        
         @media (min-width: 768px) {
             body {
                 padding: 20px;
@@ -392,36 +430,39 @@
             to {bottom: 0; opacity: 0;}
         }
 
-.date-group-header {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.date-group-header td {
-    border-top: 2px solid #ddd;
-    border-bottom: 2px solid #ddd;
-}
-
+        /* Colores para tipos de gastos */
+        .tipo-PlazaVea { background-color: #4fc3f7; }
+        .tipo-Restaurant { background-color: #4db6ac; }
+        .tipo-Mass { background-color: #7986cb; }
+        .tipo-Pañales { background-color: #9575cd; }
+        .tipo-Propinas { background-color: #64b5f6; }
+        .tipo-Bodega { background-color: #4dd0e1; }
+        .tipo-Mercado { background-color: #81c784; }
+        .tipo-Gasolina { background-color: #ff8a65; }
+        .tipo-Reparaciones { background-color: #a1887f; }
+        .tipo-Regalos { background-color: #f06292; }
+        .tipo-Cumpleaños { background-color: #ba68c8; }
+        .tipo-Salud { background-color: #e57373; }
+	.tipo-Colegio { background-color: #ffd54f; } /* Amarillo más fuerte */
+	.tipo-PresupuestoExcedido { background-color: #ffcdd2; } /* Rojo claro */
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏪 Sistema de Pedidos Forever</h1>
+        <h1>🏠 Gestión de Gastos del Hogar</h1>
         
         <div class="button-group">
             <button onclick="openImportModal()" class="btn-secondary">📥 Importar Excel</button>
             <button type="button" class="btn-primary" onclick="generateExcel()">📤 Exportar Excel</button>
-            <button onclick="resetDatabase()" class="btn-danger">🧹 Limpiar BD (NO TOCAR) </button>
+            <button onclick="resetDatabase()" class="btn-danger">🧹 Limpiar BD</button>
             <button onclick="showAdminModal()" class="btn-warning">⚙️ Panel Admin</button>
-            <button onclick="showDashboard()" class="btn-secondary">📊 Dashboard</button>
-            <button onclick="showMainView()" class="btn-primary">🏠 Inicio</button>
+            <button onclick="showDashboard()" class="btn-info">📊 Dashboard</button>
+            <button onclick="showMainView()" class="btn-success">🏠 Inicio</button>
         </div>
         
         <!-- Sección de Dashboard -->
         <div id="dashboardSection" class="section" style="display: none;">
-            <h2>📊 Dashboard de Métricas</h2>
+            <h2>📊 Dashboard de Gastos</h2>
             
             <div class="period-selector">
                 <button onclick="updateDashboard('day')" class="btn-primary">Día</button>
@@ -452,206 +493,107 @@
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h3>Ventas Totales</h3>
-                    <div class="value" id="totalSalesStat">$0</div>
+                    <h3>Gastos Totales</h3>
+                    <div class="value" id="totalExpensesStat">$0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Pedidos</h3>
-                    <div class="value" id="totalOrdersStat">0</div>
+                    <h3>Gastos Registrados</h3>
+                    <div class="value" id="totalPurchasesStat">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Clientes</h3>
-                    <div class="value" id="totalClientsStat">0</div>
+                    <h3>Categorías Usadas</h3>
+                    <div class="value" id="totalSuppliersStat">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Compra Promedio en Soles  </h3>
-                    <div class="value" id="avgTicketStat">$0</div>
+                    <h3>Gasto Promedio</h3>
+                    <div class="value" id="avgExpenseStat">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Gasto Máximo</h3>
+                    <div class="value" id="maxExpenseStat">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Gasto Mínimo</h3>
+                    <div class="value" id="minExpenseStat">$0</div>
                 </div>
             </div>
             
-            <div class="chart-container">
-                <canvas id="salesChart"></canvas>
+            <div class="grid-2">
+                <div class="chart-container">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="expensesByCategoryChart"></canvas>
+                </div>
             </div>
             
-            <h3>📈 Top 15 Mejores Productos</h3>
+            <h3>🏆 Top 5 Categorías</h3>
             <div class="table-responsive">
-                <table id="topProductsTable">
+                <table id="topSuppliersTable">
                     <thead>
                         <tr>
-                            <th>Producto</th>
-                            <th>Cantidad Vendida</th>
-                            <th>Total Vendido</th>
-                        </tr>
-                    </thead>
-                    <tbody id="topProductsBody"></tbody>
-                </table>
-            </div>
-            
-            <h3>🏆 Mejores 15 Clientes</h3>
-            <div class="table-responsive">
-                <table id="topClientsTable">
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Pedidos</th>
+                            <th>Categoría</th>
+                            <th>Gastos</th>
                             <th>Total Gastado</th>
                         </tr>
                     </thead>
-                    <tbody id="topClientsBody"></tbody>
+                    <tbody id="topSuppliersBody"></tbody>
                 </table>
             </div>
-<!-- Después de la tabla de Top Clientes por gasto -->
-<h3>🏆 Top 10 Clientes por Frecuencia</h3>
-<div class="table-responsive">
-    <table id="topFrequentClientsTable">
-        <thead>
-            <tr>
-                <th>Cliente</th>
-                <th>Veces que compró</th>
-                <th>Total Gastado</th>
-            </tr>
-        </thead>
-        <tbody id="topFrequentClientsBody"></tbody>
-    </table>
-</div>
-
-<h3>📊 Top 10 Productos por Frecuencia</h3>
-<div class="table-responsive">
-    <table id="topFrequentProductsTable">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Veces vendido</th>
-                <th>Total Vendido</th>
-            </tr>
-        </thead>
-        <tbody id="topFrequentProductsBody"></tbody>
-    </table>
-</div>
-
-
-
         </div>
 
-
-
-
-
-
-        
-        <!-- Sección principal (formulario y lista de pedidos) -->
+        <!-- Sección principal (formulario y lista de gastos) -->
         <div id="mainSection">
             <div class="section">
-                <h2>➕ Nuevo Pedido</h2>
-                <form id="orderForm">
-                    <input type="hidden" id="fecha">
-                    <input type="hidden" id="editingOrderId" value="">
-                    
-                    <div class="autocomplete">
-                        <label for="nombre">Cliente:</label>
-                        <input type="text" id="nombre" required placeholder="Buscar cliente..." oninput="searchClient(this.value)">
-                        <div id="clientAutocompleteList" class="autocomplete-items"></div>
-                    </div>
+                <h2>➕ Nuevo Gasto</h2>
+                <form id="purchaseForm">
+                    <input type="hidden" id="editingPurchaseId" value="">
                     
                     <div class="grid-2">
                         <div class="form-group">
-                            <label for="telefono">Teléfono:</label>
-                            <input type="tel" id="telefono" required>
+                            <label for="fechaEmision">Fecha de Gasto:</label>
+                            <input type="date" id="fechaEmision" required>
                         </div>
                         <div class="form-group">
-                            <label for="distrito">Distrito:</label>
-                            <input type="text" id="distrito" list="distritos" placeholder="Seleccione o ingrese distrito">
-                            <datalist id="distritos">
-                                <option value="San Miguel">
-                                <option value="Jesus Maria">
-                                <option value="La Perla">
-                                <option value="Magdalena">
-                                <option value="Breña">
-                                <option value="Cercado">
-                                <option value="Bellavista">
-				<option value="Lince">
-                                <option value="Pueblo Libre">
-                                <option value="San Isidro">
-                                <option value="Callao">
-                            </datalist>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="direccion">Dirección:</label>
-                        <input type="text" id="direccion" required>
-                    </div>
-                    
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label for="formaPago">Forma de Pago:</label>
-                            <select id="formaPago">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Yape">Yape</option>
-                                <option value="Transferencia">Transferencia</option>
-                <option value="Izipay POS">Izipay POS</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="tipoCliente">Tipo de cliente:</label>
-                            <select id="tipoCliente">
-                                <option value="General">General</option>
-                                <option value="Revendedor">Revendedor</option>
-                                <option value="Mal Cliente">Mal Cliente</option>
+                            <label for="tipoGasto">Tipo de Gasto:</label>
+                            <select id="tipoGasto" required>
+                                <option value="">Seleccione tipo</option>
+                                <option value="PlazaVea">Plaza Vea</option>
+                                <option value="Restaurant">Restaurant</option>
+                                <option value="Mass">Mass</option>
+                                <option value="Pañales">Pañales</option>
+                                <option value="Propinas">Propinas</option>
+                                <option value="Bodega">Bodega</option>
+                                <option value="Mercado">Mercado</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Reparaciones">Reparaciones</option>
+                                <option value="Regalos">Regalos</option>
+                                <option value="Cumpleaños">Cumpleaños</option>
+                                <option value="Salud">Salud</option>
+				<option value="Colegio">Colegio</option>
+    <!-- Nueva opción para agregar nuevos tipos -->
+    <option value="nuevo">➕ Agregar nuevo tipo</option>
                             </select>
                         </div>
                     </div>
+
+<div id="nuevoTipoContainer" style="display: none;">
+    <label for="nuevoTipo">Nuevo tipo de gasto:</label>
+    <input type="text" id="nuevoTipo" placeholder="Ingrese el nuevo tipo de gasto">
+</div>
                     
                     <div class="form-group">
-                        <label for="horarioEntrega">Horario de Entrega:</label>
-                        <select id="horarioEntrega">
-                            <option value="">Seleccionar horario</option>
-                            <option value="Mañana 10:00 am a 2:00 pm">Mañana 10:00 am a 2:00 pm</option>
-                            <option value="Tarde 12:00 pm a 5:00 pm">Tarde 12:00 pm a 5:00 pm</option>
-                            <option value="Noche 5:00 pm a 9:00 pm">Noche 5:00 pm a 9:00 pm</option>
-                        </select>
+                        <label for="monto">Monto Total:</label>
+                        <input type="number" id="monto" min="0" step="0.01" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="notas">Notas:</label>
-                        <textarea id="notas" rows="2"></textarea>
-                    </div>
-                    
-                    <h3>🛒 Productos:</h3>
-                    <div class="autocomplete">
-                        <input type="text" id="buscarProducto" placeholder="Buscar producto..." oninput="autocompleteProduct(this.value)">
-                        <div id="productAutocompleteList" class="autocomplete-items"></div>
+                        <label for="descripcion">Observaciones:</label>
+                        <textarea id="descripcion" rows="2" placeholder="Detalles del gasto"></textarea>
                     </div>
                     
                     <div class="button-group">
-                        <button type="button" class="btn-primary" onclick="addProductFromSearch()">Agregar</button>
-                        <button type="button" class="btn-warning" onclick="showAddProductModal()">➕ Nuevo</button>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table id="productTable">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Precio</th>
-                                    <th>Cant.</th>
-                                    <th>Subtotal</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productBody"></tbody>
-                            <tfoot>
-                                <tr class="total-row">
-                                    <td colspan="3">Total</td>
-                                    <td id="totalPedido">0.00</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button type="button" class="btn-primary" onclick="saveOrder()">💾 Guardar</button>
+                        <button type="button" class="btn-primary" onclick="savePurchase()">💾 Guardar</button>
                         <button type="button" class="btn-warning" onclick="cancelEdit()" id="cancelEditBtn" style="display:none;">✖ Cancelar</button>
                         <button type="reset" class="btn-danger">♻️ Limpiar</button>
                     </div>
@@ -659,70 +601,39 @@
             </div>
 
             <div class="section">
-                <h2>📋 Pedidos Registrados</h2>
+                <h2>📋 Gastos Registrados</h2>
 
-<div class="button-group" style="margin-bottom: 15px;">
-    <button onclick="filterOrders('today')" class="btn-primary">Hoy</button>
-    <button onclick="filterOrders('week')" class="btn-primary">Esta Semana</button>
-    <button onclick="filterOrders('month')" class="btn-primary">Este Mes</button>
-    <button onclick="filterOrders('all')" class="btn-primary">Todos</button>
-    <input type="date" id="filterDate" onchange="filterOrders('custom')" style="max-width: 150px;">
-</div>
+                <div class="button-group" style="margin-bottom: 15px;">
+                    <button onclick="filterPurchases('today')" class="btn-primary">Hoy</button>
+                    <button onclick="filterPurchases('week')" class="btn-primary">Esta Semana</button>
+                    <button onclick="filterPurchases('month')" class="btn-primary">Este Mes</button>
+                    <button onclick="filterPurchases('all')" class="btn-primary">Todos</button>
+                    <input type="date" id="filterDate" onchange="filterPurchases('custom')" style="max-width: 150px;">
+                </div>
 
                 <div class="table-responsive">
-                    <table id="ordersTable">
+                    <table id="purchasesTable">
                         <thead>
                             <tr>
                                 <th>Fecha</th>
-                                <th class="mobile-hidden">Cliente</th>
-                                <th>Teléfono</th>
-                                <th>Total</th>
+                                <th class="mobile-hidden">Tipo</th>
+                                <th>Monto</th>
+                                <th>Observaciones</th>
                                 <th>Acciones</th>
-                <th>Editar Fecha</th>
                             </tr>
                         </thead>
-                        <tbody id="ordersBody"></tbody>
+                        <tbody id="purchasesBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
         
-        <!-- Modal para agregar nuevo producto -->
-        <div id="productModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal('productModal')">&times;</span>
-                <h2>➕ Nuevo Producto</h2>
-                <form id="newProductForm">
-                    <div class="form-group">
-                        <label for="newProductName">Nombre del Producto:</label>
-                        <input type="text" id="newProductName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="newProductPrice">Precio:</label>
-                        <input type="number" id="newProductPrice" min="0" step="0.01" required>
-                    </div>
-                    <div class="button-group">
-                        <button type="button" class="btn-primary" onclick="addNewProduct()">Guardar</button>
-                        <button type="button" class="btn-danger" onclick="closeModal('productModal')">Cancelar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         <!-- Modal para importar datos -->
         <div id="importModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeModal('importModal')">&times;</span>
                 <h2>📤 Importar Datos desde Excel</h2>
                 <div class="section">
-                    <div class="form-group">
-                        <label>Tipo de importación:</label>
-                        <select id="importType" class="form-control">
-                            <option value="clientes">Clientes</option>
-                            <option value="productos">Productos</option>
-                        </select>
-                    </div>
-                    
                     <div class="form-group">
                         <label for="excelFile">Seleccionar archivo Excel:</label>
                         <input type="file" id="excelFile" accept=".xlsx, .xls" class="form-control">
@@ -731,6 +642,7 @@
                     
                     <div class="button-group">
                         <button id="btnPreview" class="btn-secondary" onclick="previewExcelData()">👁️ Previsualizar</button>
+                        <button id="btnTemplate" class="btn-secondary" onclick="downloadPurchaseTemplate()">📝 Descargar Plantilla</button>
                         <button id="btnImport" class="btn-primary" onclick="importExcelData()" disabled>📥 Importar</button>
                     </div>
                     
@@ -754,10 +666,9 @@
                     <div class="section">
                         <h3>📊 Estadísticas</h3>
                         <div id="statsContainer">
-                            <p><strong>Clientes:</strong> <span id="clientCount">0</span></p>
-                            <p><strong>Productos:</strong> <span id="productCount">0</span></p>
-                            <p><strong>Pedidos:</strong> <span id="orderCount">0</span></p>
-                            <p><strong>Total Ventas:</strong> $<span id="totalSales">0.00</span></p>
+                            <p><strong>Categorías:</strong> <span id="supplierCount">0</span></p>
+                            <p><strong>Gastos:</strong> <span id="purchaseCount">0</span></p>
+                            <p><strong>Total Gastado:</strong> $<span id="totalExpenses">0.00</span></p>
                             <p><strong>Última Actualización:</strong> <span id="lastUpdate"></span></p>
                         </div>
                     </div>
@@ -780,21 +691,7 @@
                 <div class="section">
                     <h3>🧹 Limpieza Selectiva</h3>
                     <div class="form-group">
-                        <label>Seleccionar qué limpiar:</label>
-                        <div class="grid-3">
-                            <div>
-                                <input type="checkbox" id="clearClients"> <label for="clearClients">Clientes</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" id="clearProducts"> <label for="clearProducts">Productos</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" id="clearOrders"> <label for="clearOrders">Pedidos</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button class="btn-danger" onclick="clearSelectedData()">🗑️ Limpiar Datos Seleccionados</button>
+                        <button class="btn-danger" onclick="clearSelectedData()">🗑️ Limpiar Todos los Datos</button>
                         <small class="text-muted">¡Esta acción no se puede deshacer!</small>
                     </div>
                 </div>
@@ -803,9 +700,7 @@
                     <h3>🔍 Vista de Datos</h3>
                     <div class="form-group">
                         <select id="dataViewSelector" class="form-control">
-                            <option value="clientes">Clientes</option>
-                            <option value="productos">Productos</option>
-                            <option value="pedidos">Pedidos</option>
+                            <option value="compras">Gastos</option>
                         </select>
                     </div>
                     <div class="table-responsive">
@@ -829,22 +724,16 @@
 
         <script>
             // Configuración de IndexedDB
-            const DB_NAME = 'PedidosForeverDB';
+            const DB_NAME = 'GastosHogarDB';
             const DB_VERSION = 1;
             let db;
             
-            // Variables para el gráfico
-            let salesChart = null;
+            // Variables para los gráficos
+            let expensesChart = null;
+            let expensesByCategoryChart = null;
             let currentPeriod = 'month';
             let currentSpecificDate = null;
             
-            // Distritos predefinidos
-            const DISTRITOS_PREDEFINIDOS = [
-                "San Miguel", "Jesus Maria", "La Perla", 
-                "Magdalena", "Breña", "Cercado", "Bellavista",
-		"Lince", "Pueblo Libre", "San Isidro", "Callao"
-            ];
-
             // Inicializar IndexedDB
             function initDB() {
                 return new Promise((resolve, reject) => {
@@ -863,22 +752,11 @@
                     request.onupgradeneeded = function(event) {
                         const db = event.target.result;
                         
-                        // Crear object stores si no existen
-                        if (!db.objectStoreNames.contains('clientes')) {
-                            const clientesStore = db.createObjectStore('clientes', { keyPath: 'id', autoIncrement: true });
-                            clientesStore.createIndex('nombre', 'nombre', { unique: false });
-                            clientesStore.createIndex('telefono', 'telefono', { unique: true });
-                        }
-                        
-                        if (!db.objectStoreNames.contains('productos')) {
-                            const productosStore = db.createObjectStore('productos', { keyPath: 'id', autoIncrement: true });
-                            productosStore.createIndex('nombre', 'nombre', { unique: true });
-                        }
-                        
-                        if (!db.objectStoreNames.contains('pedidos')) {
-                            const pedidosStore = db.createObjectStore('pedidos', { keyPath: 'id', autoIncrement: true });
-                            pedidosStore.createIndex('fechaCompleta', 'fechaCompleta', { unique: false });
-                            pedidosStore.createIndex('cliente', 'cliente', { unique: false });
+                        // Solo necesitamos el object store para compras (gastos)
+                        if (!db.objectStoreNames.contains('compras')) {
+                            const comprasStore = db.createObjectStore('compras', { keyPath: 'id', autoIncrement: true });
+                            comprasStore.createIndex('fechaEmision', 'fechaEmision', { unique: false });
+                            comprasStore.createIndex('tipoGasto', 'tipoGasto', { unique: false });
                         }
                     };
                 });
@@ -940,121 +818,6 @@
                 });
             }
 
-            // ========== FUNCIONES DE AUTOCOMPLETADO ========== //
-            
-            function searchClient(val) {
-    const input = document.getElementById('nombre');
-    const container = input.parentNode;
-    let lista = container.querySelector('.autocomplete-items');
-    
-    if (!lista) {
-        lista = document.createElement('div');
-        lista.className = 'autocomplete-items';
-        container.appendChild(lista);
-    }
-    
-    lista.innerHTML = '';
-    
-    if (!val || val.length < 2) return;
-    
-    const inputVal = val.toLowerCase();
-    
-    const transaction = db.transaction(['clientes'], 'readonly');
-    const store = transaction.objectStore('clientes');
-    const request = store.getAll();
-    
-    request.onsuccess = function() {
-        const clientes = request.result || [];
-        const clientesFiltrados = clientes.filter(cliente => 
-            cliente.nombre.toLowerCase().includes(inputVal) || 
-            (cliente.telefono && cliente.telefono.toString().includes(inputVal))
-        ).slice(0, 10); // Limitar a 10 resultados
-        
-        clientesFiltrados.forEach(cliente => {
-            const div = document.createElement('div');
-            div.textContent = `${cliente.nombre} - ${cliente.telefono}`;
-            div.addEventListener('click', () => {
-                input.value = cliente.nombre;
-                document.getElementById('telefono').value = cliente.telefono || '';
-                document.getElementById('distrito').value = cliente.distrito || '';
-                document.getElementById('direccion').value = cliente.direccion || '';
-                document.getElementById('formaPago').value = cliente.formaPago || 'Efectivo';
-                document.getElementById('tipoCliente').value = cliente.tipo || 'General';
-                document.getElementById('horarioEntrega').value = cliente.horarioEntrega || '';
-                document.getElementById('notas').value = cliente.notas || '';
-                lista.innerHTML = '';
-            });
-            lista.appendChild(div);
-        });
-        
-        if (clientesFiltrados.length === 0) {
-            const div = document.createElement('div');
-            div.textContent = "No se encontraron clientes";
-            div.style.padding = "8px";
-            div.style.color = "#666";
-            div.style.fontStyle = "italic";
-            lista.appendChild(div);
-        }
-    };
-    
-    request.onerror = function(event) {
-        console.error("Error al buscar clientes:", event.target.error);
-    };
-}
-            
-           function autocompleteProduct(val) {
-    const list = document.getElementById("productAutocompleteList");
-    list.innerHTML = "";
-    
-    if (!val || val.length < 2) return;
-    
-    const inputVal = val.toLowerCase();
-    
-    const transaction = db.transaction(['productos'], 'readonly');
-    const store = transaction.objectStore('productos');
-    const request = store.getAll();
-    
-    request.onsuccess = function() {
-        const productos = request.result || [];
-        const matches = productos.filter(producto => 
-            producto.nombre.toLowerCase().includes(inputVal)
-        ).slice(0, 25); // Limitar a 10 resultados
-        
-        matches.forEach(producto => {
-            const item = document.createElement("div");
-            item.innerHTML = `<strong>${producto.nombre}</strong> <small>($${producto.precio})</small>`;
-            item.addEventListener("click", function() {
-                document.getElementById("buscarProducto").value = `${producto.nombre} ($${producto.precio})`;
-                list.innerHTML = "";
-            });
-            list.appendChild(item);
-        });
-        
-        if (matches.length === 0) {
-            const item = document.createElement("div");
-            item.textContent = "No se encontraron productos";
-            item.style.padding = "8px";
-            item.style.color = "#666";
-            item.style.fontStyle = "italic";
-            list.appendChild(item);
-        }
-    };
-    
-    request.onerror = function(event) {
-        console.error("Error al buscar productos:", event.target.error);
-    };
-}
-
-            // Cerrar listas de autocompletado al hacer clic fuera
-            document.addEventListener('click', function(e) {
-                if (e.target.id !== 'nombre' && e.target.id !== 'buscarProducto') {
-                    const autocompleteLists = document.querySelectorAll('.autocomplete-items');
-                    autocompleteLists.forEach(list => {
-                        list.innerHTML = '';
-                    });
-                }
-            });
-
             // ========== FUNCIONES DEL DASHBOARD ========== //
 
             function showDashboard() {
@@ -1069,7 +832,7 @@
             function showMainView() {
                 document.getElementById('dashboardSection').style.display = 'none';
                 document.getElementById('mainSection').style.display = 'block';
-                refreshOrdersView();
+                refreshPurchasesView();
             }
 
             function initDateSelectors() {
@@ -1102,8 +865,8 @@
             }
 
             function updateDashboard(period, specificDate = null) {
-    currentPeriod = period;
-    currentSpecificDate = specificDate || null;
+                currentPeriod = period;
+                currentSpecificDate = specificDate || null;
                 
                 // Mostrar/ocultar selectores de fecha específica
                 document.getElementById('dateSelectorContainer').style.display = 'none';
@@ -1126,56 +889,52 @@
                     document.getElementById('yearSelector').style.display = 'block';
                 }
                 
-               updateSalesChart(period, specificDate);
-    updateStats(period, specificDate);
-    updateTopProducts();
-    updateTopClients();
-    updateTopFrequentClients();  // Nueva función
-    updateTopFrequentProducts(); // Nueva función
-}
+                updateExpensesChart(period, specificDate);
+                updateExpensesByCategoryChart(period, specificDate);
+                updateStats(period, specificDate);
+                updateTopCategories();
+            }
             
             function updateSpecificPeriod(period) {
-    currentPeriod = period;
-    
-    if (period === 'day') {
-        const dayInput = document.getElementById('specificDay').value;
-        if (dayInput) {
-            // Crear la fecha ajustando la zona horaria local
-            const [year, month, day] = dayInput.split('-');
-            currentSpecificDate = new Date(year, month - 1, day);
-            currentSpecificDate.setHours(0, 0, 0, 0);
-            
-            updateSalesChart(period, currentSpecificDate);
-            updateStats(period, currentSpecificDate);
-        }
-    } else if (period === 'week') {
-        const weekInput = document.getElementById('specificWeek').value;
-        if (weekInput) {
-            const [year, week] = weekInput.split('-W');
-            currentSpecificDate = getDateOfWeek(parseInt(week), parseInt(year));
-            updateSalesChart(period, currentSpecificDate);
-            updateStats(period, currentSpecificDate);
-        }
-    } else if (period === 'month') {
-        const monthInput = document.getElementById('specificMonth').value;
-        if (monthInput) {
-            const [year, month] = monthInput.split('-');
-            currentSpecificDate = new Date(year, parseInt(month) - 1, 1);
-            updateSalesChart(period, currentSpecificDate);
-            updateStats(period, currentSpecificDate);
-        }
-    } else if (period === 'year') {
-        const yearInput = document.getElementById('specificYear').value;
-        if (yearInput) {
-            currentSpecificDate = new Date(yearInput, 0, 1);
-            updateSalesChart(period, currentSpecificDate);
-            updateStats(period, currentSpecificDate);
-        }
-    }
-    
-    updateTopProducts();
-    updateTopClients();
-}
+                currentPeriod = period;
+                
+                if (period === 'day') {
+                    const dayInput = document.getElementById('specificDay').value;
+                    if (dayInput) {
+                        const [year, month, day] = dayInput.split('-');
+                        currentSpecificDate = new Date(year, month - 1, day);
+                        currentSpecificDate.setHours(0, 0, 0, 0);
+                        
+                        updateExpensesChart(period, currentSpecificDate);
+                        updateStats(period, currentSpecificDate);
+                    }
+                } else if (period === 'week') {
+                    const weekInput = document.getElementById('specificWeek').value;
+                    if (weekInput) {
+                        const [year, week] = weekInput.split('-W');
+                        currentSpecificDate = getDateOfWeek(parseInt(week), parseInt(year));
+                        updateExpensesChart(period, currentSpecificDate);
+                        updateStats(period, currentSpecificDate);
+                    }
+                } else if (period === 'month') {
+                    const monthInput = document.getElementById('specificMonth').value;
+                    if (monthInput) {
+                        const [year, month] = monthInput.split('-');
+                        currentSpecificDate = new Date(year, parseInt(month) - 1, 1);
+                        updateExpensesChart(period, currentSpecificDate);
+                        updateStats(period, currentSpecificDate);
+                    }
+                } else if (period === 'year') {
+                    const yearInput = document.getElementById('specificYear').value;
+                    if (yearInput) {
+                        currentSpecificDate = new Date(yearInput, 0, 1);
+                        updateExpensesChart(period, currentSpecificDate);
+                        updateStats(period, currentSpecificDate);
+                    }
+                }
+                
+                updateTopCategories();
+            }
             
             function getDateOfWeek(week, year) {
                 const simple = new Date(year, 0, 1 + (week - 1) * 7);
@@ -1188,23 +947,23 @@
                 return ISOweekStart;
             }
 
-            function updateSalesChart(period, specificDate = null) {
-                const ctx = document.getElementById('salesChart').getContext('2d');
+            function updateExpensesChart(period, specificDate = null) {
+                const ctx = document.getElementById('expensesChart').getContext('2d');
                 
-                getSalesDataByPeriod(period, specificDate).then(({ labels, data }) => {
-                    if (salesChart) {
-                        salesChart.destroy();
+                getExpensesDataByPeriod(period, specificDate).then(({ labels, data }) => {
+                    if (expensesChart) {
+                        expensesChart.destroy();
                     }
                     
-                    salesChart = new Chart(ctx, {
+                    expensesChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: 'Ventas por $',
+                                label: 'Gastos por $',
                                 data: data,
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(106, 27, 154, 0.5)',
+                                borderColor: 'rgba(106, 27, 154, 1)',
                                 borderWidth: 1
                             }]
                         },
@@ -1215,45 +974,92 @@
                                 y: {
                                     beginAtZero: true
                                 }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Gastos por Periodo',
+                                    font: {
+                                        size: 16
+                                    }
+                                }
                             }
                         }
                     });
                 });
             }
 
-            function getSalesDataByPeriod(period, specificDate = null) {
+            function updateExpensesByCategoryChart(period, specificDate = null) {
+                const ctx = document.getElementById('expensesByCategoryChart').getContext('2d');
+                
+                getExpensesByCategory(period, specificDate).then(({ labels, data, colors }) => {
+                    if (expensesByCategoryChart) {
+                        expensesByCategoryChart.destroy();
+                    }
+                    
+                    expensesByCategoryChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: colors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Gastos por Categoría',
+                                    font: {
+                                        size: 16
+                                    }
+                                },
+                                legend: {
+                                    position: 'right'
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            function getExpensesDataByPeriod(period, specificDate = null) {
                 return new Promise((resolve) => {
                     const now = specificDate || new Date();
                     let labels = [];
                     let data = [];
                     
-                    const transaction = db.transaction(['pedidos'], 'readonly');
-                    const store = transaction.objectStore('pedidos');
+                    const transaction = db.transaction(['compras'], 'readonly');
+                    const store = transaction.objectStore('compras');
                     const request = store.getAll();
                     
                     request.onsuccess = function() {
-                        const pedidos = request.result || [];
+                        const compras = request.result || [];
                         
-                    if (period === 'day') {
-    // Horas del día específico
-    labels = [];
-    data = Array(24).fill(0);
-    
-    for (let i = 0; i < 24; i++) {
-        labels.push(`${i}:00`);
-    }
-    
-    pedidos.forEach(pedido => {
-        const pedidoDate = new Date(pedido.fechaCompleta);
-        const pedidoDay = new Date(pedidoDate);
-        pedidoDay.setHours(0, 0, 0, 0);
-        
-        if (pedidoDay.getTime() === now.getTime()) {
-            const hour = pedidoDate.getHours();
-            data[hour] += parseFloat(pedido.total);
-        }
-    });
-}
+                        if (period === 'day') {
+                            // Horas del día específico
+                            labels = [];
+                            data = Array(24).fill(0);
+                            
+                            for (let i = 0; i < 24; i++) {
+                                labels.push(`${i}:00`);
+                            }
+                            
+                            compras.forEach(compra => {
+                                const compraDate = new Date(compra.fechaEmisionCompleta);
+                                const compraDay = new Date(compraDate);
+                                compraDay.setHours(0, 0, 0, 0);
+                                
+                                if (compraDay.getTime() === now.getTime()) {
+                                    const hour = compraDate.getHours();
+                                    data[hour] += parseFloat(compra.monto);
+                                }
+                            });
+                        }
                         else if (period === 'week') {
                             // Días de la semana específica
                             labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -1266,10 +1072,10 @@
                                 const day = new Date(startOfWeek);
                                 day.setDate(startOfWeek.getDate() + i);
                                 
-                                pedidos.forEach(pedido => {
-                                    const pedidoDate = new Date(pedido.fechaCompleta);
-                                    if (pedidoDate.toDateString() === day.toDateString()) {
-                                        data[i] += parseFloat(pedido.total);
+                                compras.forEach(compra => {
+                                    const compraDate = new Date(compra.fechaEmisionCompleta);
+                                    if (compraDate.toDateString() === day.toDateString()) {
+                                        data[i] += parseFloat(compra.monto);
                                     }
                                 });
                             }
@@ -1283,13 +1089,13 @@
                             const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                             const totalDays = lastDay.getDate();
                             
-                            pedidos.forEach(pedido => {
-                                const pedidoDate = new Date(pedido.fechaCompleta);
-                                if (pedidoDate.getMonth() === now.getMonth() && 
-                                    pedidoDate.getFullYear() === now.getFullYear()) {
-                                    const week = Math.floor((pedidoDate.getDate() + firstDay.getDay() - 1) / 7);
+                            compras.forEach(compra => {
+                                const compraDate = new Date(compra.fechaEmisionCompleta);
+                                if (compraDate.getMonth() === now.getMonth() && 
+                                    compraDate.getFullYear() === now.getFullYear()) {
+                                    const week = Math.floor((compraDate.getDate() + firstDay.getDay() - 1) / 7);
                                     if (week < 5) {
-                                        data[week] += parseFloat(pedido.total);
+                                        data[week] += parseFloat(compra.monto);
                                     }
                                 }
                             });
@@ -1303,11 +1109,11 @@
                                 const monthName = new Date(now.getFullYear(), i, 1).toLocaleDateString('es-ES', { month: 'short' });
                                 labels.push(monthName);
                                 
-                                pedidos.forEach(pedido => {
-                                    const pedidoDate = new Date(pedido.fechaCompleta);
-                                    if (pedidoDate.getMonth() === i && 
-                                        pedidoDate.getFullYear() === now.getFullYear()) {
-                                        data[i] += parseFloat(pedido.total);
+                                compras.forEach(compra => {
+                                    const compraDate = new Date(compra.fechaEmisionCompleta);
+                                    if (compraDate.getMonth() === i && 
+                                        compraDate.getFullYear() === now.getFullYear()) {
+                                        data[i] += parseFloat(compra.monto);
                                     }
                                 });
                             }
@@ -1316,14 +1122,14 @@
                             // Todos los datos agrupados por mes
                             const allMonths = {};
                             
-                            pedidos.forEach(pedido => {
-                                const date = new Date(pedido.fechaCompleta);
+                            compras.forEach(compra => {
+                                const date = new Date(compra.fechaEmisionCompleta);
                                 const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                                 
                                 if (!allMonths[monthYear]) {
                                     allMonths[monthYear] = 0;
                                 }
-                                allMonths[monthYear] += parseFloat(pedido.total);
+                                allMonths[monthYear] += parseFloat(compra.monto);
                             });
                             
                             labels = Object.keys(allMonths).sort().map(month => {
@@ -1341,203 +1147,248 @@
                 });
             }
 
+            function getExpensesByCategory(period, specificDate = null) {
+                return new Promise((resolve) => {
+                    const now = specificDate || new Date();
+                    const categoryStats = {};
+                    
+                    const transaction = db.transaction(['compras'], 'readonly');
+                    const store = transaction.objectStore('compras');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = function() {
+                        const compras = request.result || [];
+                        
+                        // Filtrar por período si es necesario
+                        let filteredCompras = compras;
+                        if (specificDate) {
+                            filteredCompras = compras.filter(c => {
+                                const compraDate = new Date(c.fechaEmisionCompleta);
+                                
+                                if (period === 'day') {
+                                    return compraDate.getDate() === now.getDate() && 
+                                           compraDate.getMonth() === now.getMonth() && 
+                                           compraDate.getFullYear() === now.getFullYear();
+                                } else if (period === 'week') {
+                                    const startOfWeek = new Date(now);
+                                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                                    const endOfWeek = new Date(startOfWeek);
+                                    endOfWeek.setDate(startOfWeek.getDate() + 6);
+                                    return compraDate >= startOfWeek && compraDate <= endOfWeek;
+                                } else if (period === 'month') {
+                                    return compraDate.getMonth() === now.getMonth() && 
+                                           compraDate.getFullYear() === now.getFullYear();
+                                } else if (period === 'year') {
+                                    return compraDate.getFullYear() === now.getFullYear();
+                                }
+                                return true;
+                            });
+                        }
+                        
+                        filteredCompras.forEach(compra => {
+                            if (!categoryStats[compra.tipoGasto]) {
+                                categoryStats[compra.tipoGasto] = 0;
+                            }
+                            categoryStats[compra.tipoGasto] += parseFloat(compra.monto);
+                        });
+                        
+                        // Ordenar por monto descendente
+                        const sortedCategories = Object.entries(categoryStats)
+                            .sort((a, b) => b[1] - a[1]);
+                        
+                        const labels = sortedCategories.map(([name]) => name);
+                        const data = sortedCategories.map(([_, total]) => total);
+                        
+                        // Colores para cada categoría
+                        const colors = labels.map(label => {
+                            const colorMap = {
+    'PlazaVea': '#4fc3f7',
+    'Restaurant': '#4db6ac',
+    'Mass': '#7986cb',
+    'Pañales': '#9575cd',
+    'Propinas': '#64b5f6',
+    'Bodega': '#4dd0e1',
+    'Mercado': '#81c784',
+    'Gasolina': '#ff8a65',
+    'Reparaciones': '#a1887f',
+    'Regalos': '#f06292',
+    'Cumpleaños': '#ba68c8',
+    'Salud': '#e57373',
+    'Colegio': '#ffd54f'
+};
+return colorMap[label] || getRandomColor();
+                        });
+
+function getRandomColor() {
+    // Genera un color aleatorio para nuevos tipos
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+                        
+                        resolve({ labels, data, colors });
+                    };
+                });
+            }
+
             function updateStats(period, specificDate = null) {
-                calculateStats(period, specificDate).then(({ totalSales, totalOrders, avgTicket, uniqueClients }) => {
-                    document.getElementById('totalSalesStat').textContent = `$${totalSales.toFixed(2)}`;
-                    document.getElementById('totalOrdersStat').textContent = totalOrders;
-                    document.getElementById('totalClientsStat').textContent = uniqueClients;
-                    document.getElementById('avgTicketStat').textContent = `$${avgTicket.toFixed(2)}`;
+                calculateStats(period, specificDate).then(({ 
+                    totalExpenses, 
+                    totalPurchases, 
+                    avgExpense,
+                    maxExpense,
+                    minExpense,
+                    uniqueCategories
+                }) => {
+                    document.getElementById('totalExpensesStat').textContent = `$${totalExpenses.toFixed(2)}`;
+                    document.getElementById('totalPurchasesStat').textContent = totalPurchases;
+                    document.getElementById('totalSuppliersStat').textContent = uniqueCategories;
+                    document.getElementById('avgExpenseStat').textContent = `$${avgExpense.toFixed(2)}`;
+                    document.getElementById('maxExpenseStat').textContent = `$${maxExpense.toFixed(2)}`;
+                    document.getElementById('minExpenseStat').textContent = `$${minExpense.toFixed(2)}`;
                 });
             }
 
             function calculateStats(period, specificDate = null) {
                 return new Promise((resolve) => {
                     const now = specificDate || new Date();
-                    let filteredOrders = [];
+                    let filteredPurchases = [];
                     
-                    const transaction = db.transaction(['pedidos'], 'readonly');
-                    const store = transaction.objectStore('pedidos');
+                    const transaction = db.transaction(['compras'], 'readonly');
+                    const store = transaction.objectStore('compras');
                     const request = store.getAll();
                     
                     request.onsuccess = function() {
-                        const allOrders = request.result || [];
+                        const allPurchases = request.result || [];
                         
+                        // Filtrado por período
                         if (period === 'day') {
-    const dayStart = new Date(now);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayStart.getDate() + 1);
-    
-    filteredOrders = allOrders.filter(p => {
-        const pedidoDate = new Date(p.fechaCompleta);
-        return pedidoDate >= dayStart && pedidoDate < dayEnd;
-    });
-}
+                            const dayStart = new Date(now);
+                            dayStart.setHours(0, 0, 0, 0);
+                            const dayEnd = new Date(dayStart);
+                            dayEnd.setDate(dayStart.getDate() + 1);
+                            
+                            filteredPurchases = allPurchases.filter(p => {
+                                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                                return purchaseDate >= dayStart && purchaseDate < dayEnd;
+                            });
+                        }
                         else if (period === 'week') {
                             const startOfWeek = new Date(now);
-                            startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Lunes
+                            startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
                             const endOfWeek = new Date(startOfWeek);
                             endOfWeek.setDate(startOfWeek.getDate() + 6);
                             
-                            filteredOrders = allOrders.filter(p => {
-                                const pedidoDate = new Date(p.fechaCompleta);
-                                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+                            filteredPurchases = allPurchases.filter(p => {
+                                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                                return purchaseDate >= startOfWeek && purchaseDate <= endOfWeek;
                             });
                         } 
                         else if (period === 'month') {
-                            filteredOrders = allOrders.filter(p => {
-                                const pedidoDate = new Date(p.fechaCompleta);
-                                return pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
+                            filteredPurchases = allPurchases.filter(p => {
+                                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                                return purchaseDate.getMonth() === now.getMonth() && 
+                                       purchaseDate.getFullYear() === now.getFullYear();
                             });
                         } 
                         else if (period === 'year') {
-                            filteredOrders = allOrders.filter(p => {
-                                const pedidoDate = new Date(p.fechaCompleta);
-                                return pedidoDate.getFullYear() === now.getFullYear();
+                            filteredPurchases = allPurchases.filter(p => {
+                                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                                return purchaseDate.getFullYear() === now.getFullYear();
                             });
                         } 
                         else {
-                            filteredOrders = [...allOrders];
+                            filteredPurchases = [...allPurchases];
                         }
                         
-                        const totalSales = filteredOrders.reduce((sum, p) => sum + parseFloat(p.total), 0);
-                        const totalOrders = filteredOrders.length;
-                        const avgTicket = totalOrders > 0 ? totalSales / totalOrders : 0;
+                        // Cálculos estadísticos
+                        const totalExpenses = filteredPurchases.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+                        const totalPurchases = filteredPurchases.length;
+                        const avgExpense = totalPurchases > 0 ? totalExpenses / totalPurchases : 0;
                         
-                        const uniqueClients = new Set(filteredOrders.map(p => p.cliente)).size;
+                        // Encontrar gasto máximo y mínimo
+                        let maxExpense = 0;
+                        let minExpense = 0;
+                        if (filteredPurchases.length > 0) {
+                            maxExpense = Math.max(...filteredPurchases.map(p => parseFloat(p.monto)));
+                            minExpense = Math.min(...filteredPurchases.map(p => parseFloat(p.monto)));
+                        }
                         
-                        resolve({ totalSales, totalOrders, avgTicket, uniqueClients });
+                        // Categorías únicas
+                        const uniqueCategories = new Set(filteredPurchases.map(p => p.tipoGasto)).size;
+                        
+                        resolve({ 
+                            totalExpenses, 
+                            totalPurchases, 
+                            avgExpense,
+                            maxExpense,
+                            minExpense,
+                            uniqueCategories
+                        });
                     };
                 });
             }
 
-            function updateTopProducts() {
-                const productSales = {};
+            function updateTopCategories() {
+                const categoryStats = {};
                 
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
+                const transaction = db.transaction(['compras'], 'readonly');
+                const store = transaction.objectStore('compras');
                 const request = store.getAll();
                 
                 request.onsuccess = function() {
-                    const pedidos = request.result || [];
+                    const compras = request.result || [];
                     
                     // Filtrar por período si es necesario
-                    let filteredPedidos = pedidos;
+                    let filteredCompras = compras;
                     if (currentSpecificDate) {
                         const now = currentSpecificDate;
-                        filteredPedidos = pedidos.filter(p => {
-                            const pedidoDate = new Date(p.fechaCompleta);
+                        filteredCompras = compras.filter(c => {
+                            const compraDate = new Date(c.fechaEmisionCompleta);
                             
                             if (currentPeriod === 'day') {
-                                return pedidoDate.getDate() === now.getDate() && 
-                                       pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
+                                return compraDate.getDate() === now.getDate() && 
+                                       compraDate.getMonth() === now.getMonth() && 
+                                       compraDate.getFullYear() === now.getFullYear();
                             } else if (currentPeriod === 'week') {
                                 const startOfWeek = new Date(now);
                                 startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
                                 const endOfWeek = new Date(startOfWeek);
                                 endOfWeek.setDate(startOfWeek.getDate() + 6);
-                                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
+                                return compraDate >= startOfWeek && compraDate <= endOfWeek;
                             } else if (currentPeriod === 'month') {
-                                return pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
+                                return compraDate.getMonth() === now.getMonth() && 
+                                       compraDate.getFullYear() === now.getFullYear();
                             } else if (currentPeriod === 'year') {
-                                return pedidoDate.getFullYear() === now.getFullYear();
+                                return compraDate.getFullYear() === now.getFullYear();
                             }
                             return true;
                         });
                     }
                     
-                    filteredPedidos.forEach(pedido => {
-                        pedido.productos.forEach(producto => {
-                            if (!productSales[producto.producto]) {
-                                productSales[producto.producto] = {
-                                    quantity: 0,
-                                    total: 0
-                                };
-                            }
-                            productSales[producto.producto].quantity += producto.cantidad;
-                            productSales[producto.producto].total += producto.subtotal;
-                        });
-                    });
-                    
-                    const sortedProducts = Object.entries(productSales)
-                        .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 15);
-                    
-                    const tbody = document.getElementById('topProductsBody');
-                    tbody.innerHTML = '';
-                    
-                    sortedProducts.forEach(([name, stats]) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${name}</td>
-                            <td>${stats.quantity}</td>
-                            <td>$${stats.total.toFixed(2)}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                };
-            }
-
-            function updateTopClients() {
-                const clientStats = {};
-                
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.getAll();
-                
-                request.onsuccess = function() {
-                    const pedidos = request.result || [];
-                    
-                    // Filtrar por período si es necesario
-                    let filteredPedidos = pedidos;
-                    if (currentSpecificDate) {
-                        const now = currentSpecificDate;
-                        filteredPedidos = pedidos.filter(p => {
-                            const pedidoDate = new Date(p.fechaCompleta);
-                            
-                            if (currentPeriod === 'day') {
-                                return pedidoDate.getDate() === now.getDate() && 
-                                       pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'week') {
-                                const startOfWeek = new Date(now);
-                                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                                const endOfWeek = new Date(startOfWeek);
-                                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                                return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                            } else if (currentPeriod === 'month') {
-                                return pedidoDate.getMonth() === now.getMonth() && 
-                                       pedidoDate.getFullYear() === now.getFullYear();
-                            } else if (currentPeriod === 'year') {
-                                return pedidoDate.getFullYear() === now.getFullYear();
-                            }
-                            return true;
-                        });
-                    }
-                    
-                    filteredPedidos.forEach(pedido => {
-                        if (!clientStats[pedido.cliente]) {
-                            clientStats[pedido.cliente] = {
+                    filteredCompras.forEach(compra => {
+                        if (!categoryStats[compra.tipoGasto]) {
+                            categoryStats[compra.tipoGasto] = {
                                 count: 0,
                                 total: 0
                             };
                         }
                         
-                        clientStats[pedido.cliente].count++;
-                        clientStats[pedido.cliente].total += parseFloat(pedido.total);
+                        categoryStats[compra.tipoGasto].count++;
+                        categoryStats[compra.tipoGasto].total += parseFloat(compra.monto);
                     });
                     
-                    const sortedClients = Object.entries(clientStats)
+                    const sortedCategories = Object.entries(categoryStats)
                         .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 15);
+                        .slice(0, 5);
                     
-                    const tbody = document.getElementById('topClientsBody');
+                    const tbody = document.getElementById('topSuppliersBody');
                     tbody.innerHTML = '';
                     
-                    sortedClients.forEach(([name, stats]) => {
+                    sortedCategories.forEach(([name, stats]) => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${name}</td>
@@ -1548,154 +1399,6 @@
                     });
                 };
             }
-
-function updateTopFrequentClients() {
-    const clientStats = {};
-    
-    const transaction = db.transaction(['pedidos'], 'readonly');
-    const store = transaction.objectStore('pedidos');
-    const request = store.getAll();
-    
-    request.onsuccess = function() {
-        const pedidos = request.result || [];
-        
-        // Filtrar por período si es necesario
-        let filteredPedidos = pedidos;
-        if (currentSpecificDate) {
-            const now = currentSpecificDate;
-            filteredPedidos = pedidos.filter(p => {
-                const pedidoDate = new Date(p.fechaCompleta);
-                
-                if (currentPeriod === 'day') {
-                    return pedidoDate.getDate() === now.getDate() && 
-                           pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'week') {
-                    const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 6);
-                    return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                } else if (currentPeriod === 'month') {
-                    return pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'year') {
-                    return pedidoDate.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
-        }
-        
-        // Contar frecuencia de compra
-        filteredPedidos.forEach(pedido => {
-            if (!clientStats[pedido.cliente]) {
-                clientStats[pedido.cliente] = {
-                    count: 0,
-                    total: 0
-                };
-            }
-            
-            clientStats[pedido.cliente].count++;
-            clientStats[pedido.cliente].total += parseFloat(pedido.total);
-        });
-        
-        // Ordenar por frecuencia (count) y limitar a 10
-        const sortedClients = Object.entries(clientStats)
-            .sort((a, b) => b[1].count - a[1].count)
-            .slice(0, 10);
-        
-        const tbody = document.getElementById('topFrequentClientsBody');
-        tbody.innerHTML = '';
-        
-        sortedClients.forEach(([name, stats]) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${name}</td>
-                <td>${stats.count}</td>
-                <td>$${stats.total.toFixed(2)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    };
-}
-
-function updateTopFrequentProducts() {
-    const productStats = {};
-    
-    const transaction = db.transaction(['pedidos'], 'readonly');
-    const store = transaction.objectStore('pedidos');
-    const request = store.getAll();
-    
-    request.onsuccess = function() {
-        const pedidos = request.result || [];
-        
-        // Filtrar por período si es necesario
-        let filteredPedidos = pedidos;
-        if (currentSpecificDate) {
-            const now = currentSpecificDate;
-            filteredPedidos = pedidos.filter(p => {
-                const pedidoDate = new Date(p.fechaCompleta);
-                
-                if (currentPeriod === 'day') {
-                    return pedidoDate.getDate() === now.getDate() && 
-                           pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'week') {
-                    const startOfWeek = new Date(now);
-                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(startOfWeek.getDate() + 6);
-                    return pedidoDate >= startOfWeek && pedidoDate <= endOfWeek;
-                } else if (currentPeriod === 'month') {
-                    return pedidoDate.getMonth() === now.getMonth() && 
-                           pedidoDate.getFullYear() === now.getFullYear();
-                } else if (currentPeriod === 'year') {
-                    return pedidoDate.getFullYear() === now.getFullYear();
-                }
-                return true;
-            });
-        }
-        
-        // Contar frecuencia de venta por producto
-        filteredPedidos.forEach(pedido => {
-            pedido.productos.forEach(producto => {
-                if (!productStats[producto.producto]) {
-                    productStats[producto.producto] = {
-                        count: 0,
-                        total: 0
-                    };
-                }
-                
-                // Contar cada vez que aparece en un pedido (no la cantidad)
-                productStats[producto.producto].count++;
-                productStats[producto.producto].total += producto.subtotal;
-            });
-        });
-        
-        // Ordenar por frecuencia (count) y limitar a 10
-        const sortedProducts = Object.entries(productStats)
-            .sort((a, b) => b[1].count - a[1].count)
-            .slice(0, 10);
-        
-        const tbody = document.getElementById('topFrequentProductsBody');
-        tbody.innerHTML = '';
-        
-        sortedProducts.forEach(([name, stats]) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${name}</td>
-                <td>${stats.count}</td>
-                <td>$${stats.total.toFixed(2)}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    };
-}
-
-
-
-
-
 
             // ========== FUNCIONES DE IMPORTACIÓN/EXPORTACIÓN ========== //
 
@@ -1709,7 +1412,6 @@ function updateTopFrequentProducts() {
 
             function previewExcelData() {
                 const file = document.getElementById('excelFile').files[0];
-                const importType = document.getElementById('importType').value;
                 
                 if (!file) {
                     showToast("⚠️ Por favor seleccione un archivo", 'error');
@@ -1755,114 +1457,176 @@ function updateTopFrequentProducts() {
 
             function importExcelData() {
                 const file = document.getElementById('excelFile').files[0];
-                const importType = document.getElementById('importType').value;
                 
+                if (!file) {
+                    showToast("⚠️ Por favor seleccione un archivo", 'error');
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    let successCount = 0;
-                    let errorCount = 0;
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+                        
+                        let successCount = 0;
+                        let errorCount = 0;
+                        let errorMessages = [];
 
-                    if (importType === 'clientes') {
-                        const promises = jsonData.map((item, index) => {
-                            return new Promise((resolve) => {
-                                try {
-                                    // Validar campos mínimos
-                                    if (!item['Nombre'] && !item['CLIENTE'] && !item['Cliente']) {
-                                        throw new Error("Falta nombre del cliente");
+                        // Obtener el último ID de compra para generar nuevos IDs
+                        getAllFromStore('compras').then(existingPurchases => {
+                            const maxId = existingPurchases.length > 0 ? 
+                                Math.max(...existingPurchases.map(p => p.id)) + 1 : 1;
+                            
+                            const importPromises = jsonData.map((item, index) => {
+                                return new Promise((resolve, reject) => {
+                                    try {
+                                        // Validaciones básicas
+                                        if (!item['TipoGasto'] && !item['tipoGasto']) {
+                                            throw new Error("Falta tipo de gasto");
+                                        }
+                                        
+                                        if (!item['Monto'] && !item['monto']) {
+                                            throw new Error("Falta monto del gasto");
+                                        }
+
+                                        const nuevoId = maxId + index;
+                                        const tipoGasto = (item['TipoGasto'] || item['tipoGasto'] || "").toString().trim();
+                                        const monto = parseFloat(item['Monto'] || item['monto'] || 0);
+                                        const descripcion = (item['Observaciones'] || item['observaciones'] || item['Descripción'] || item['descripcion'] || "").toString().trim();
+                                        
+                                        // Manejo de fechas
+                                        let fechaEmision = item['Fecha Emisión'] || item['fechaEmision'] || item['Fecha'];
+                                        
+                                        let fechaEmisionDate;
+                                        
+                                        // Procesar fecha de emisión
+                                        if (fechaEmision) {
+                                            try {
+                                                if (typeof fechaEmision === 'number') {
+                                                    // Fecha como número de Excel
+                                                    const date = XLSX.SSF.parse_date_code(fechaEmision);
+                                                    fechaEmisionDate = new Date(date.y, date.m - 1, date.d);
+                                                } else {
+                                                    // Intentar parsear como fecha
+                                                    fechaEmisionDate = new Date(fechaEmision);
+                                                    if (isNaN(fechaEmisionDate.getTime())) {
+                                                        // Si falla, intentar formato dd/mm/yyyy
+                                                        const parts = fechaEmision.toString().split('/');
+                                                        if (parts.length === 3) {
+                                                            fechaEmisionDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                                                        }
+                                                    }
+                                                }
+                                                
+                                                if (isNaN(fechaEmisionDate.getTime())) {
+                                                    throw new Error("Fecha de emisión inválida");
+                                                }
+                                            } catch (e) {
+                                                console.warn("Fecha de emisión inválida, usando fecha actual:", e);
+                                                fechaEmisionDate = new Date();
+                                            }
+                                        } else {
+                                            fechaEmisionDate = new Date();
+                                        }
+                                        
+                                        // Formatear fecha legible
+                                        const fechaEmisionFormateada = fechaEmisionDate.toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: '2-digit',
+                                            day: '2-digit'
+                                        }).replace(/\//g, '-');
+                                        
+                                        // Crear el gasto
+                                        const nuevoGasto = {
+                                            id: nuevoId,
+                                            tipoGasto,
+                                            monto: monto.toFixed(2),
+                                            descripcion,
+                                            fechaEmision: fechaEmisionFormateada,
+                                            fechaEmisionCompleta: fechaEmisionDate.toISOString()
+                                        };
+                                        
+                                        // Guardar el gasto en IndexedDB
+                                        addToStore('compras', nuevoGasto)
+                                            .then(() => {
+                                                successCount++;
+                                                resolve();
+                                            })
+                                            .catch(error => {
+                                                errorCount++;
+                                                errorMessages.push(`Fila ${index + 2}: ${error.message}`);
+                                                console.error(`Error al importar gasto (fila ${index + 2}):`, error);
+                                                reject(error);
+                                            });
+                                    } catch (e) {
+                                        errorCount++;
+                                        errorMessages.push(`Fila ${index + 2}: ${e.message}`);
+                                        console.error(`Error al importar gasto (fila ${index + 2}):`, e);
+                                        reject(e);
+                                    }
+                                });
+                            });
+
+                            Promise.all(importPromises)
+                                .then(() => {
+                                    // Mostrar resultados
+                                    let resultHTML = `<div class="alert alert-success">
+                                        ✅ Importación completada: ${successCount} registros importados</div>`;
+                                    
+                                    if (errorCount > 0) {
+                                        resultHTML += `<div class="alert alert-danger">
+                                            ❌ ${errorCount} errores:<br>${errorMessages.join('<br>')}</div>`;
                                     }
                                     
-                                    const nuevoCliente = {
-                                        nombre: item['Nombre'] || item['CLIENTE'] || item['Cliente'] || '',
-                                        telefono: (item['Teléfono'] || item['TELEFONO'] || item['Telefono'] || '').toString(),
-                                        direccion: item['Dirección'] || item['DIRECCION'] || item['Direccion'] || '',
-                                        distrito: item['Distrito'] || item['DISTRITO'] || '',
-                                        formaPago: item['Forma de Pago'] || item['FORMA_PAGO'] || 'Efectivo',
-                                        horarioEntrega: item['Horario'] || item['HORARIO'] || '',
-                                        tipo: item['Tipo'] || item['TIPO'] || 'General',
-                                        notas: item['Notas'] || item['NOTAS'] || ''
-                                    };
+                                    document.getElementById('importResults').innerHTML = resultHTML;
                                     
-                                    addToStore('clientes', nuevoCliente)
-                                        .then(() => {
-                                            successCount++;
-                                            resolve();
-                                        })
-                                        .catch(() => {
-                                            errorCount++;
-                                            resolve();
-                                        });
-                                } catch (e) {
-                                    errorCount++;
-                                    console.error("Error al importar cliente:", e);
-                                    resolve();
-                                }
-                            });
+                                    // Actualizar vistas
+                                    refreshPurchasesView();
+                                    updateDashboard(currentPeriod);
+                                })
+                                .catch(error => {
+                                    console.error("Error en la importación:", error);
+                                });
                         });
-                        
-                        Promise.all(promises).then(() => {
-                            document.getElementById('importResults').innerHTML = `
-                                <div class="alert alert-success">
-                                    ✅ Importación completada: ${successCount} registros importados
-                                    ${errorCount > 0 ? `, ${errorCount} con errores` : ''}
-                                </div>
-                            `;
-                            
-                            // Actualizar vistas
-                            refreshOrdersView();
-                            updateDashboard(currentPeriod);
-                        });
-                    } 
-                    else if (importType === 'productos') {
-                        const promises = jsonData.map((item, index) => {
-                            return new Promise((resolve) => {
-                                try {
-                                    const nuevoProducto = {
-                                        nombre: item['Producto'] || item['PRODUCTO'] || item['Nombre'] || '',
-                                        precio: parseFloat(item['Precio'] || item['PRECIO'] || 0)
-                                    };
-                                    
-                                    addToStore('productos', nuevoProducto)
-                                        .then(() => {
-                                            successCount++;
-                                            resolve();
-                                        })
-                                        .catch(() => {
-                                            errorCount++;
-                                            resolve();
-                                        });
-                                } catch (e) {
-                                    errorCount++;
-                                    console.error("Error al importar producto:", e);
-                                    resolve();
-                                }
-                            });
-                        });
-                        
-                        Promise.all(promises).then(() => {
-                            document.getElementById('importResults').innerHTML = `
-                                <div class="alert alert-success">
-                                    ✅ Importación completada: ${successCount} registros importados
-                                    ${errorCount > 0 ? `, ${errorCount} con errores` : ''}
-                                </div>
-                            `;
-                            
-                            // Actualizar vistas
-                            refreshOrdersView();
-                            updateDashboard(currentPeriod);
-                        });
+                    } catch (error) {
+                        console.error("Error general al importar:", error);
+                        document.getElementById('importResults').innerHTML = `
+                            <div class="alert alert-danger">
+                                ❌ Error al procesar el archivo: ${error.message}
+                            </div>`;
                     }
                 };
+                
+                reader.onerror = function() {
+                    document.getElementById('importResults').innerHTML = `
+                        <div class="alert alert-danger">
+                            ❌ Error al leer el archivo
+                        </div>`;
+                };
+                
                 reader.readAsArrayBuffer(file);
             }
 
+            function downloadPurchaseTemplate() {
+                const templateData = [
+                    ["TipoGasto", "Monto", "Observaciones", "Fecha Emisión"],
+                    ["PlazaVea", "150.50", "Compra del supermercado", "01-01-2023"],
+                    ["Restaurant", "80.00", "Cena familiar", "05-02-2023"]
+                ];
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(templateData);
+                XLSX.utils.book_append_sheet(wb, ws, "PlantillaGastos");
+                XLSX.writeFile(wb, "Plantilla_Gastos.xlsx");
+            }
+
             function generateExcel() {
-                getAllFromStore('pedidos').then(pedidos => {
-                    if (pedidos.length === 0) {
-                        showToast("⚠️ No hay pedidos registrados", 'error');
+                getAllFromStore('compras').then(compras => {
+                    if (compras.length === 0) {
+                        showToast("⚠️ No hay gastos registrados", 'error');
                         return;
                     }
 
@@ -1870,57 +1634,40 @@ function updateTopFrequentProducts() {
                     
                     // Hoja de resumen
                     const summaryData = [
-                        ["Resumen de Pedidos"],
+                        ["Resumen de Gastos"],
                         [],
-                        ["ID", "Fecha", "Cliente", "Teléfono", "Distrito", "Forma de Pago", "Horario Entrega", "Total", "Tipo"]
+                        ["ID", "Fecha", "Tipo de Gasto", "Monto", "Observaciones"]
                     ];
 
-                    pedidos.forEach(pedido => {
+                    compras.forEach(compra => {
                         summaryData.push([
-                            pedido.id,
-                            pedido.fecha,
-                            pedido.cliente,
-                            pedido.telefono,
-                            pedido.distrito || '',
-                            pedido.formaPago || '',
-                            pedido.horarioEntrega || '',
-                            pedido.total,
-                            pedido.tipoCliente
+                            compra.id,
+                            compra.fechaEmision,
+                            compra.tipoGasto,
+                            compra.monto,
+                            compra.descripcion || ''
                         ]);
                     });
 
                     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
                     XLSX.utils.book_append_sheet(wb, wsSummary, "Resumen");
 
-                    // Hojas por pedido
-                    pedidos.forEach(pedido => {
-                        const clientData = [
-                            ["Detalles del Pedido"],
-                            ["ID:", pedido.id],
-                            ["Fecha:", pedido.fecha],
-                            ["Cliente:", pedido.cliente],
-                            ["Teléfono:", pedido.telefono],
-                            ["Distrito:", pedido.distrito || ''],
-                            ["Dirección:", pedido.direccion],
-                            ["Forma de Pago:", pedido.formaPago || ''],
-                            ["Horario Entrega:", pedido.horarioEntrega || ''],
-                            ["Tipo:", pedido.tipoCliente],
-                            ["Notas:", pedido.notas || ''],
-                            [],
-                            ["Productos", "Precio Unitario", "Cantidad", "Subtotal"]
+                    // Hojas por gasto
+                    compras.forEach(compra => {
+                        const compraData = [
+                            ["Detalles del Gasto"],
+                            ["ID:", compra.id],
+                            ["Fecha:", compra.fechaEmision],
+                            ["Tipo de Gasto:", compra.tipoGasto],
+                            ["Monto:", compra.monto],
+                            ["Observaciones:", compra.descripcion || ''],
                         ];
 
-                        pedido.productos.forEach(p => {
-                            clientData.push([p.producto, p.precio, p.cantidad, p.subtotal]);
-                        });
-
-                        clientData.push([], ["Total:", "", "", pedido.total]);
-
-                        const wsClient = XLSX.utils.aoa_to_sheet(clientData);
-                        XLSX.utils.book_append_sheet(wb, wsClient, `Pedido ${pedido.id}`);
+                        const wsCompra = XLSX.utils.aoa_to_sheet(compraData);
+                        XLSX.utils.book_append_sheet(wb, wsCompra, `Gasto ${compra.id}`);
                     });
 
-                    XLSX.writeFile(wb, `Pedidos_${new Date().toISOString().split('T')[0]}.xlsx`);
+                    XLSX.writeFile(wb, `Gastos_Hogar_${new Date().toISOString().split('T')[0]}.xlsx`);
                     showToast("✅ Archivo Excel generado correctamente", 'success');
                 });
             }
@@ -1934,17 +1681,15 @@ function updateTopFrequentProducts() {
             }
             
             function updateAdminStats() {
-                Promise.all([
-                    getAllFromStore('clientes'),
-                    getAllFromStore('productos'),
-                    getAllFromStore('pedidos')
-                ]).then(([clientes, productos, pedidos]) => {
-                    document.getElementById('clientCount').textContent = clientes.length;
-                    document.getElementById('productCount').textContent = productos.length;
-                    document.getElementById('orderCount').textContent = pedidos.length;
+                getAllFromStore('compras').then(compras => {
+                    document.getElementById('purchaseCount').textContent = compras.length;
                     
-                    const totalSales = pedidos.reduce((sum, pedido) => sum + parseFloat(pedido.total), 0);
-                    document.getElementById('totalSales').textContent = totalSales.toFixed(2);
+                    const totalExpenses = compras.reduce((sum, compra) => sum + parseFloat(compra.monto), 0);
+                    document.getElementById('totalExpenses').textContent = totalExpenses.toFixed(2);
+                    
+                    // Contar categorías únicas
+                    const uniqueCategories = new Set(compras.map(c => c.tipoGasto)).size;
+                    document.getElementById('supplierCount').textContent = uniqueCategories;
                     
                     updateLastModified();
                 });
@@ -1971,14 +1716,9 @@ function updateTopFrequentProducts() {
                         detailsCell.style.textOverflow = 'ellipsis';
                         detailsCell.style.whiteSpace = 'nowrap';
                         
-                        if (type === 'clientes') {
-                            detailsCell.textContent = `${item.nombre} - ${item.telefono}`;
-                            detailsCell.title = `Dirección: ${item.direccion}\nDistrito: ${item.distrito || 'N/A'}\nNotas: ${item.notas || 'Ninguna'}`;
-                        } else if (type === 'productos') {
-                            detailsCell.textContent = `${item.nombre} - $${item.precio}`;
-                        } else if (type === 'pedidos') {
-                            detailsCell.textContent = `${item.fecha} - ${item.cliente} - $${item.total}`;
-                            detailsCell.title = `Productos: ${item.productos.length}\nTel: ${item.telefono}\nDirección: ${item.direccion}`;
+                        if (type === 'compras') {
+                            detailsCell.textContent = `${item.fechaEmision} - ${item.tipoGasto} - $${item.monto}`;
+                            detailsCell.title = `Observaciones: ${item.descripcion || 'Ninguna'}`;
                         }
                         
                         row.appendChild(detailsCell);
@@ -2001,7 +1741,7 @@ function updateTopFrequentProducts() {
             }
             
             function deleteItem(type, id) {
-                if (!confirm(`¿Está seguro de eliminar este ${type.slice(0, -1)}?`)) {
+                if (!confirm(`¿Está seguro de eliminar este gasto?`)) {
                     return;
                 }
                 
@@ -2009,8 +1749,8 @@ function updateTopFrequentProducts() {
                     .then(() => {
                         updateAdminStats();
                         loadDataView();
-                        refreshOrdersView();
-                        showToast(`✅ ${type === 'clientes' ? 'Cliente' : type === 'productos' ? 'Producto' : 'Pedido'} eliminado`, 'success');
+                        refreshPurchasesView();
+                        showToast(`✅ Gasto eliminado`, 'success');
                     })
                     .catch(error => {
                         console.error("Error al eliminar:", error);
@@ -2019,23 +1759,17 @@ function updateTopFrequentProducts() {
             }
             
             function exportBackup() {
-                Promise.all([
-                    getAllFromStore('clientes'),
-                    getAllFromStore('productos'),
-                    getAllFromStore('pedidos')
-                ]).then(([clientes, productos, pedidos]) => {
+                getAllFromStore('compras').then(compras => {
                     const backupData = {
-                        clientes,
-                        productos,
-                        pedidos,
+                        compras,
                         fechaBackup: new Date().toISOString(),
-                        versionSistema: '2.0'
+                        versionSistema: '1.0'
                     };
                     
                     const dataStr = JSON.stringify(backupData, null, 2);
                     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
                     
-                    const exportName = `backup_pedidos_${new Date().toISOString().split('T')[0]}.json`;
+                    const exportName = `backup_gastos_${new Date().toISOString().split('T')[0]}.json`;
                     
                     const linkElement = document.createElement('a');
                     linkElement.setAttribute('href', dataUri);
@@ -2062,31 +1796,27 @@ function updateTopFrequentProducts() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
-                        const backupData = JSON.parse(e.target.result);
-                        
-                        // Validación básica del backup
-                        if (!backupData.clientes || !backupData.productos || !backupData.pedidos) {
-                            throw new Error("Formato de backup inválido");
-                        }
+    const backupData = JSON.parse(e.target.result);
+    // Validación básica:
+    if (!backupData.compras || !Array.isArray(backupData.compras)) {
+        throw new Error("El archivo no contiene datos válidos de gastos");
+    }
+    // Verifica que los campos obligatorios estén en cada gasto:
+    const isValid = backupData.compras.every(compra => 
+        compra.tipoGasto && compra.monto && compra.fechaEmision
+    );
+    if (!isValid) {
+        throw new Error("Estructura de datos incompleta");
+    }
                         
                         // Limpiar las bases de datos existentes
-                        Promise.all([
-                            clearStore('clientes'),
-                            clearStore('productos'),
-                            clearStore('pedidos')
-                        ]).then(() => {
+                        clearStore('compras').then(() => {
                             // Importar los nuevos datos
-                            const clientPromises = backupData.clientes.map(c => addToStore('clientes', c));
-                            const productPromises = backupData.productos.map(p => addToStore('productos', p));
-                            const orderPromises = backupData.pedidos.map(o => addToStore('pedidos', o));
+                            const purchasePromises = backupData.compras.map(c => addToStore('compras', c));
                             
-                            return Promise.all([
-                                Promise.all(clientPromises),
-                                Promise.all(productPromises),
-                                Promise.all(orderPromises)
-                            ]);
+                            return Promise.all(purchasePromises);
                         }).then(() => {
-                            refreshOrdersView();
+                            refreshPurchasesView();
                             updateAdminStats();
                             loadDataView();
                             showToast("✅ Backup restaurado correctamente", 'success');
@@ -2103,27 +1833,13 @@ function updateTopFrequentProducts() {
             }
             
             function clearSelectedData() {
-                const clearClients = document.getElementById('clearClients').checked;
-                const clearProducts = document.getElementById('clearProducts').checked;
-                const clearOrders = document.getElementById('clearOrders').checked;
-                
-                if (!clearClients && !clearProducts && !clearOrders) {
-                    showToast("⚠️ Seleccione al menos un tipo de dato para limpiar", 'error');
+                if (!confirm("¿ESTÁ SEGURO? Esta acción eliminará permanentemente todos los datos.")) {
                     return;
                 }
                 
-                if (!confirm("¿ESTÁ SEGURO? Esta acción eliminará permanentemente los datos seleccionados.")) {
-                    return;
-                }
-                
-                const promises = [];
-                if (clearClients) promises.push(clearStore('clientes'));
-                if (clearProducts) promises.push(clearStore('productos'));
-                if (clearOrders) promises.push(clearStore('pedidos'));
-                
-                Promise.all(promises)
+                clearStore('compras')
                     .then(() => {
-                        refreshOrdersView();
+                        refreshPurchasesView();
                         updateAdminStats();
                         loadDataView();
                         showToast("✅ Datos limpiados correctamente", 'success');
@@ -2136,540 +1852,285 @@ function updateTopFrequentProducts() {
 
             // ========== FUNCIONES BÁSICAS DEL SISTEMA ========== //
 
-            function saveOrder() {
-                // Validar campos del cliente
-                const nombre = document.getElementById('nombre').value.trim();
-                const telefono = document.getElementById('telefono').value.trim();
-                const direccion = document.getElementById('direccion').value.trim();
-                
-                if (!nombre) {
-                    showToast("⚠️ Por favor ingrese el nombre del cliente", 'error');
-                    document.getElementById('nombre').focus();
-                    return;
-                }
-                
-                if (!telefono) {
-                    showToast("⚠️ Por favor ingrese el teléfono del cliente", 'error');
-                    document.getElementById('telefono').focus();
-                    return;
-                }
-                
-                if (!direccion) {
-                    showToast("⚠️ Por favor ingrese la dirección del cliente", 'error');
-                    document.getElementById('direccion').focus();
-                    return;
-                }
+            function savePurchase() {
+                // Validar campos requeridos
+                let tipoGasto = document.getElementById('tipoGasto').value.trim();
+                const monto = parseFloat(document.getElementById('monto').value);
+                const fechaEmisionInput = document.getElementById('fechaEmision').value;
 
-                // 1. PRIMERO ACTUALIZAMOS O CREAMOS EL CLIENTE
-                const distrito = document.getElementById('distrito').value.trim();
-                const formaPago = document.getElementById('formaPago').value;
-                const tipoCliente = document.getElementById('tipoCliente').value;
-                const horarioEntrega = document.getElementById('horarioEntrega').value;
-                const notas = document.getElementById('notas').value.trim();
-                
-                updateOrCreateClient(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas)
-                    .then(() => {
-                        // 2. LUEGO PROCESAMOS EL PEDIDO
-                        const productos = [];
-                        let total = 0;
-                        let hasErrors = false;
-                        
-                        document.querySelectorAll('#productBody tr').forEach(row => {
-                            const producto = row.querySelector('.producto').value.trim();
-                            const precioInput = row.querySelector('.precio');
-                            const cantidadInput = row.querySelector('.cantidad');
-                            
-                            const precio = parseFloat(precioInput.value) || 0;
-                            const cantidad = parseInt(cantidadInput.value) || 0;
-                            const subtotal = precio * cantidad;
-                            
-                            if (!producto) {
-                                showToast("⚠️ Todos los productos deben tener un nombre", 'error');
-                                row.querySelector('.producto').focus();
-                                hasErrors = true;
-                                return;
-                            }
-                            
-                            if (precio <= 0) {
-                                showToast("⚠️ El precio debe ser mayor que 0", 'error');
-                                precioInput.focus();
-                                hasErrors = true;
-                                return;
-                            }
-                            
-                            if (cantidad <= 0) {
-                                showToast("⚠️ La cantidad debe ser mayor que 0", 'error');
-                                cantidadInput.focus();
-                                hasErrors = true;
-                                return;
-                            }
-                            
-                            productos.push({
-                                producto,
-                                precio,
-                                cantidad,
-                                subtotal
-                            });
-                            total += subtotal;
-                        });
-                        
-                        if (hasErrors) return;
-                        
-                        if (productos.length === 0) {
-                            showToast("⚠️ Debe agregar al menos un producto al pedido", 'error');
-                            return;
-                        }
+if (monto <= 0) {
+    showToast("⚠️ El monto debe ser mayor a cero", 'error');
+    document.getElementById('monto').focus();
+    return;
+}
 
-                        // Verificar si estamos editando un pedido existente
-                        const editingOrderId = document.getElementById('editingOrderId').value;
-                        
-                        if (editingOrderId) {
-                            // Actualizar pedido existente
-                            updateOrder(editingOrderId, nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total);
-                        } else {
-                            // Crear nuevo pedido
-                            createNewOrder(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Error al guardar cliente:", error);
-                        showToast("⚠️ Error al guardar cliente", 'error');
-                    });
+// Manejar nuevo tipo de gasto
+    if (tipoGasto === 'nuevo') {
+    tipoGasto = document.getElementById('nuevoTipo').value.trim();
+    if (!tipoGasto) {
+        showToast("⚠️ Por favor ingrese el nuevo tipo de gasto", 'error');
+        document.getElementById('nuevoTipo').focus();
+        return;
+    }
+    }
+                
+                if (!tipoGasto) {
+                    showToast("⚠️ Por favor seleccione el tipo de gasto", 'error');
+                    document.getElementById('tipoGasto').focus();
+                    return;
+                }
+                
+                if (isNaN(monto)) {
+                    showToast("⚠️ Por favor ingrese un monto válido", 'error');
+                    document.getElementById('monto').focus();
+                    return;
+                }
+                
+                if (!fechaEmisionInput) {
+                    showToast("⚠️ Por favor ingrese la fecha de gasto", 'error');
+                    document.getElementById('fechaEmision').focus();
+                    return;
+                }
+                
+                // Procesar fechas
+                const [year, month, day] = fechaEmisionInput.split('-');
+                const fechaEmision = new Date(year, month - 1, day);
+                fechaEmision.setHours(12, 0, 0, 0); // Establecer hora del mediodía para evitar cambios de día
+                
+                const fechaEmisionFormateada = fechaEmision.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }).replace(/\//g, '-');
+                
+                // Obtener otros campos
+                const descripcion = document.getElementById('descripcion').value.trim();
+
+
+
+                
+                // Verificar si estamos editando un gasto existente
+                const editingPurchaseId = document.getElementById('editingPurchaseId').value;
+                
+                if (editingPurchaseId) {
+                    // Actualizar gasto existente
+                    updatePurchase(
+                        editingPurchaseId,
+                        tipoGasto,
+                        monto,
+                        descripcion,
+                        fechaEmisionFormateada,
+                        fechaEmision.toISOString()
+                    );
+                } else {
+                    // Crear nuevo gasto
+                    createNewPurchase(
+                        tipoGasto,
+                        monto,
+                        descripcion,
+                        fechaEmisionFormateada,
+                        fechaEmision.toISOString()
+                    )
+verificarPresupuesto(tipoGasto, monto);
+
+                }
             }
 
-            function updateOrder(id, nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total) {
-                const transaction = db.transaction(['pedidos'], 'readwrite');
-                const store = transaction.objectStore('pedidos');
+            function updatePurchase(id, tipoGasto, monto, descripcion, fechaEmision, fechaEmisionCompleta) {
+                const transaction = db.transaction(['compras'], 'readwrite');
+                const store = transaction.objectStore('compras');
                 const getRequest = store.get(parseInt(id));
                 
                 getRequest.onsuccess = function() {
-                    const pedido = getRequest.result;
-                    if (!pedido) {
-                        showToast("⚠️ Pedido no encontrado", 'error');
+                    const compra = getRequest.result;
+                    if (!compra) {
+                        showToast("⚠️ Gasto no encontrado", 'error');
                         return;
                     }
                     
-                    const updatedPedido = {
-                        ...pedido,
-                        cliente: nombre,
-                        telefono,
-                        direccion,
-                        distrito,
-                        formaPago,
-                        tipoCliente,
-                        horarioEntrega,
-                        notas,
-                        productos,
-                        total: total.toFixed(2),
-                        fechaCompleta: new Date().toISOString()
+                    const updatedCompra = {
+                        ...compra,
+                        tipoGasto,
+                        monto: monto.toFixed(2),
+                        descripcion,
+                        fechaEmision,
+                        fechaEmisionCompleta
                     };
                     
-                    const updateRequest = store.put(updatedPedido);
+                    const updateRequest = store.put(updatedCompra);
                     
                     updateRequest.onsuccess = function() {
-                        document.getElementById('orderForm').reset();
-                        document.getElementById('productBody').innerHTML = '';
-                        document.getElementById('totalPedido').textContent = "0.00";
-                        document.getElementById('editingOrderId').value = '';
+                        document.getElementById('purchaseForm').reset();
+                        document.getElementById('editingPurchaseId').value = '';
                         document.getElementById('cancelEditBtn').style.display = 'none';
                         
-                        // Actualizar dashboard si está visible
                         if (document.getElementById('dashboardSection').style.display === 'block') {
                             updateDashboard(currentPeriod);
                         }
                         
-                        refreshOrdersView();
-                        showToast(`✅ Pedido #${id} actualizado correctamente`, 'success');
+                        refreshPurchasesView();
+                        showToast(`✅ Gasto #${id} actualizado correctamente`, 'success');
                     };
                     
                     updateRequest.onerror = function(event) {
-                        console.error("Error al actualizar pedido:", event.target.error);
-                        showToast("⚠️ Error al actualizar pedido", 'error');
+                        console.error("Error al actualizar gasto:", event.target.error);
+                        showToast("⚠️ Error al actualizar gasto", 'error');
                     };
                 };
                 
                 getRequest.onerror = function(event) {
-                    console.error("Error al obtener pedido:", event.target.error);
-                    showToast("⚠️ Error al obtener pedido", 'error');
+                    console.error("Error al obtener gasto:", event.target.error);
+                    showToast("⚠️ Error al obtener gasto", 'error');
                 };
             }
 
-            function createNewOrder(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas, productos, total) {
-                const nuevoPedido = {
-                    cliente: nombre,
-                    telefono,
-                    direccion,
-                    distrito,
-                    formaPago,
-                    tipoCliente,
-                    horarioEntrega,
-                    notas,
-                    productos,
-                    total: total.toFixed(2),
-                    fecha: new Date().toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                    }).replace(/\//g, '-'),
-                    fechaCompleta: new Date().toISOString()
+            function createNewPurchase(tipoGasto, monto, descripcion, fechaEmision, fechaEmisionCompleta) {
+                const nuevaCompra = {
+                    tipoGasto,
+                    monto: monto.toFixed(2),
+                    descripcion,
+                    fechaEmision,
+                    fechaEmisionCompleta
                 };
 
-                addToStore('pedidos', nuevoPedido)
+                addToStore('compras', nuevaCompra)
                     .then(id => {
-                        // Actualizar vista y limpiar formulario
-                        document.getElementById('orderForm').reset();
-                        document.getElementById('productBody').innerHTML = '';
-                        document.getElementById('totalPedido').textContent = "0.00";
-                        
-                        // Actualizar dashboard si está visible
+                        document.getElementById('purchaseForm').reset();
                         if (document.getElementById('dashboardSection').style.display === 'block') {
                             updateDashboard(currentPeriod);
                         }
-                        
-                        refreshOrdersView();
-                        showToast(`✅ Pedido #${id} para ${nombre} guardado correctamente`, 'success');
+                        refreshPurchasesView();
+                        showToast(`✅ Gasto #${id} guardado correctamente`, 'success');
                     })
                     .catch(error => {
-                        console.error("Error al guardar pedido:", error);
-                        showToast("⚠️ Error al guardar pedido", 'error');
+                        console.error("Error al guardar gasto:", error);
+                        showToast("⚠️ Error al guardar gasto", 'error');
                     });
             }
 
-            function editOrder(pedidoId) {
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.get(parseInt(pedidoId));
+            function editPurchase(compraId) {
+                const transaction = db.transaction(['compras'], 'readonly');
+                const store = transaction.objectStore('compras');
+                const request = store.get(parseInt(compraId));
                 
                 request.onsuccess = function() {
-                    const pedido = request.result;
-                    if (!pedido) {
-                        showToast("⚠️ Pedido no encontrado", 'error');
+                    const compra = request.result;
+                    if (!compra) {
+                        showToast("⚠️ Gasto no encontrado", 'error');
                         return;
                     }
 
-                    // Llenar el formulario con los datos del pedido
-                    document.getElementById('nombre').value = pedido.cliente;
-                    document.getElementById('telefono').value = pedido.telefono;
-                    document.getElementById('distrito').value = pedido.distrito || '';
-                    document.getElementById('direccion').value = pedido.direccion;
-                    document.getElementById('formaPago').value = pedido.formaPago || 'Efectivo';
-                    document.getElementById('tipoCliente').value = pedido.tipoCliente || 'General';
-                    document.getElementById('horarioEntrega').value = pedido.horarioEntrega || '';
-                    document.getElementById('notas').value = pedido.notas || '';
-                    document.getElementById('editingOrderId').value = pedido.id;
+                    // Llenar el formulario con los datos del gasto
+                    document.getElementById('tipoGasto').value = compra.tipoGasto;
+                    document.getElementById('monto').value = compra.monto;
+                    document.getElementById('descripcion').value = compra.descripcion || '';
+
+                    // Convertir fechas al formato de input date (YYYY-MM-DD)
+                    const fechaEmision = new Date(compra.fechaEmisionCompleta);
+                    fechaEmision.setMinutes(fechaEmision.getMinutes() + fechaEmision.getTimezoneOffset());
+                    document.getElementById('fechaEmision').value = fechaEmision.toISOString().split('T')[0];
                     
-                    // Limpiar la tabla de productos
-                    const productBody = document.getElementById('productBody');
-                    productBody.innerHTML = '';
-                    
-                    // Agregar los productos del pedido
-                    pedido.productos.forEach(producto => {
-                        addProductRow(producto.producto, producto.precio, producto.cantidad);
-                    });
-                    
-                    // Actualizar el total
-                    document.getElementById('totalPedido').textContent = pedido.total;
+                    document.getElementById('editingPurchaseId').value = compra.id;
                     
                     // Mostrar botón de cancelar edición
                     document.getElementById('cancelEditBtn').style.display = 'inline-block';
                     
                     // Desplazarse al formulario
-                    document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('purchaseForm').scrollIntoView({ behavior: 'smooth' });
                     
-                    showToast(`✏️ Editando pedido #${pedidoId}`, 'info');
+                    showToast(`✏️ Editando gasto #${compraId}`, 'info');
                 };
                 
                 request.onerror = function(event) {
-                    console.error("Error al obtener pedido:", event.target.error);
-                    showToast("⚠️ Error al obtener pedido", 'error');
+                    console.error("Error al obtener gasto:", event.target.error);
+                    showToast("⚠️ Error al obtener gasto", 'error');
                 };
             }
 
             function cancelEdit() {
-                document.getElementById('orderForm').reset();
-                document.getElementById('productBody').innerHTML = '';
-                document.getElementById('totalPedido').textContent = "0.00";
-                document.getElementById('editingOrderId').value = '';
+                document.getElementById('purchaseForm').reset();
+                document.getElementById('editingPurchaseId').value = '';
                 document.getElementById('cancelEditBtn').style.display = 'none';
                 showToast("✖ Edición cancelada", 'info');
             }
+            
+            function refreshPurchasesView() {
+                const tbody = document.getElementById('purchasesBody');
+                tbody.innerHTML = '';
 
-            function updateOrCreateClient(nombre, telefono, direccion, distrito, formaPago, tipoCliente, horarioEntrega, notas) {
-                return new Promise((resolve, reject) => {
-                    // Buscar cliente por teléfono (único)
-                    const transaction = db.transaction(['clientes'], 'readwrite');
-                    const store = transaction.objectStore('clientes');
-                    const index = store.index('telefono');
-                    const request = index.get(telefono);
+                getAllFromStore('compras').then(compras => {
+                    // Ordenar por fecha (más reciente primero)
+                    const comprasOrdenadas = [...compras].sort((a, b) => 
+                        new Date(b.fechaEmisionCompleta) - new Date(a.fechaEmisionCompleta));
                     
-                    request.onsuccess = function() {
-                        const clienteExistente = request.result;
+                    let currentDateGroup = '';
+                    
+                    comprasOrdenadas.forEach(compra => {
+                        const compraDate = new Date(compra.fechaEmisionCompleta);
+                        const dateGroup = compraDate.toLocaleDateString('es-ES', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        }).replace(/\b\w/g, l => l.toUpperCase());
                         
-                        if (clienteExistente) {
-                            // Actualizar datos del cliente existente
-                            clienteExistente.nombre = nombre;
-                            clienteExistente.telefono = telefono;
-                            clienteExistente.direccion = direccion;
-                            clienteExistente.distrito = distrito || clienteExistente.distrito;
-                            clienteExistente.formaPago = formaPago || clienteExistente.formaPago;
-                            clienteExistente.tipo = tipoCliente || clienteExistente.tipo;
-                            clienteExistente.horarioEntrega = horarioEntrega || clienteExistente.horarioEntrega;
-                            clienteExistente.notas = notas || clienteExistente.notas;
-                            
-                            const updateRequest = store.put(clienteExistente);
-                            
-                            updateRequest.onsuccess = function() {
-                                showToast(`✅ Cliente "${nombre}" actualizado`, 'success');
-                                resolve(clienteExistente.id);
-                            };
-                            
-                            updateRequest.onerror = function(event) {
-                                console.error("Error al actualizar cliente:", event.target.error);
-                                reject("Error al actualizar cliente");
-                            };
-                        } else {
-                            // Crear nuevo cliente
-                            const nuevoCliente = {
-                                nombre,
-                                telefono,
-                                direccion,
-                                distrito: distrito || '',
-                                formaPago: formaPago || 'Efectivo',
-                                tipo: tipoCliente || 'General',
-                                horarioEntrega: horarioEntrega || '',
-                                notas: notas || ''
-                            };
-                            
-                            const addRequest = store.add(nuevoCliente);
-                            
-                            addRequest.onsuccess = function(event) {
-                                showToast(`✅ Cliente "${nombre}" agregado`, 'success');
-                                resolve(event.target.result);
-                            };
-                            
-                            addRequest.onerror = function(event) {
-                                console.error("Error al agregar cliente:", event.target.error);
-                                reject("Error al agregar cliente");
-                            };
+                        // Agregar separador de fecha si cambió
+                        if (dateGroup !== currentDateGroup) {
+                            currentDateGroup = dateGroup;
+                            const dateRow = document.createElement('tr');
+                            dateRow.className = 'date-group-header';
+                            dateRow.innerHTML = `
+                                <td colspan="5" style="
+                                    background-color: #f0f0f0;
+                                    font-weight: bold;
+                                    padding: 10px;
+                                    font-size: 1.1em;
+                                ">
+                                    📅 ${dateGroup}
+                                </td>
+                            `;
+                            tbody.appendChild(dateRow);
                         }
-                    };
-                    
-                    request.onerror = function(event) {
-                        console.error("Error al buscar cliente:", event.target.error);
-                        reject("Error al buscar cliente");
-                    };
+                        
+                        // Fila del gasto
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${compra.fechaEmision}</td>
+                            <td class="mobile-hidden tipo-${compra.tipoGasto}">${compra.tipoGasto}</td>
+                            <td>$${compra.monto}</td>
+                            <td>${compra.descripcion || ''}</td>
+                            <td>
+                                <button class="btn-primary" onclick="viewPurchaseDetails(${compra.id})">👁️</button>
+                                <button class="btn-secondary" onclick="editPurchase(${compra.id})">✏️</button>
+                                <button class="btn-danger" onclick="deletePurchase(${compra.id})">❌</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
                 });
             }
-
-            function addProductFromSearch() {
-                const input = document.getElementById('buscarProducto').value;
-                const match = input.match(/(.*) \(\$(.*)\)/);
-                
-                if (match) {
-                    const producto = match[1].trim();
-                    const precio = parseFloat(match[2]);
-                    addProductRow(producto, precio);
-                    document.getElementById('buscarProducto').value = '';
-                } else if (input.trim() !== "") {
-                    // Buscar si el producto ya existe en la base de datos
-                    const transaction = db.transaction(['productos'], 'readonly');
-                    const store = transaction.objectStore('productos');
-                    const index = store.index('nombre');
-                    const request = index.get(input);
-                    
-                    request.onsuccess = function() {
-                        const productoExistente = request.result;
-                        
-                        if (productoExistente) {
-                            addProductRow(productoExistente.nombre, productoExistente.precio);
-                            document.getElementById('buscarProducto').value = '';
-                        } else {
-                            const nuevoPrecio = prompt(`Ingrese el precio para "${input}":`);
-                            if (nuevoPrecio && !isNaN(nuevoPrecio)) {
-                                // Crear nuevo producto en la base de datos
-                                const nuevoProducto = {
-                                    nombre: input,
-                                    precio: parseFloat(nuevoPrecio)
-                                };
-                                
-                                addToStore('productos', nuevoProducto)
-                                    .then(() => {
-                                        addProductRow(input, parseFloat(nuevoPrecio));
-                                        document.getElementById('buscarProducto').value = '';
-                                        showToast(`✅ Producto "${input}" agregado a la base de datos`, 'success');
-                                    })
-                                    .catch(error => {
-                                        console.error("Error al agregar producto:", error);
-                                        showToast("⚠️ Error al agregar producto", 'error');
-                                    });
-                            }
-                        }
-                    };
-                    
-                    request.onerror = function(event) {
-                        console.error("Error al buscar producto:", event.target.error);
-                        showToast("⚠️ Error al buscar producto", 'error');
-                    };
-                }
-            }
-
-            function showAddProductModal() {
-                document.getElementById('productModal').style.display = 'block';
-                document.getElementById('newProductName').value = document.getElementById('buscarProducto').value || '';
-                document.getElementById('newProductPrice').value = '';
-                document.getElementById('newProductName').focus();
-            }
-
-            function addNewProduct() {
-                const nombre = document.getElementById('newProductName').value.trim();
-                const precio = parseFloat(document.getElementById('newProductPrice').value);
-                
-                if (nombre && !isNaN(precio)) {
-                    const nuevoProducto = {
-                        nombre,
-                        precio
-                    };
-                    
-                    addToStore('productos', nuevoProducto)
-                        .then(() => {
-                            closeModal('productModal');
-                            addProductRow(nombre, precio);
-                            document.getElementById('buscarProducto').value = `${nombre} ($${precio})`;
-                            showToast(`✅ Producto "${nombre}" agregado correctamente`, 'success');
-                        })
-                        .catch(error => {
-                            console.error("Error al agregar producto:", error);
-                            showToast("⚠️ Error al agregar producto", 'error');
-                        });
-                } else {
-                    showToast("⚠️ Ingrese un nombre y precio válidos", 'error');
-                }
-            }
-
-            function addProductRow(producto = "", precio = 0, cantidad = 1) {
-                const tbody = document.getElementById('productBody');
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><input type="text" class="producto" value="${producto}" required></td>
-                    <td><input type="number" class="precio" value="${precio}" min="0" step="0.01" required onchange="updateSubtotal(this)"></td>
-                    <td><input type="number" class="cantidad" min="1" value="${cantidad}" required onchange="updateSubtotal(this)"></td>
-                    <td class="subtotal">${(precio * cantidad).toFixed(2)}</td>
-                    <td><button type="button" class="btn-danger" onclick="this.closest('tr').remove(); updateTotal();">❌</button></td>
-                `;
-                tbody.appendChild(row);
-                updateTotal();
-            }
-
-            function updateSubtotal(input) {
-                const row = input.closest('tr');
-                const precio = parseFloat(row.querySelector('.precio').value) || 0;
-                const cantidad = parseInt(row.querySelector('.cantidad').value) || 0;
-                row.querySelector('.subtotal').textContent = (precio * cantidad).toFixed(2);
-                updateTotal();
-            }
-
-            function updateTotal() {
-                let total = 0;
-                document.querySelectorAll('.subtotal').forEach(cell => {
-                    total += parseFloat(cell.textContent) || 0;
-                });
-                document.getElementById('totalPedido').textContent = total.toFixed(2);
-            }
-
             
-                function refreshOrdersView() {
-    const tbody = document.getElementById('ordersBody');
-    tbody.innerHTML = '';
-
-    getAllFromStore('pedidos').then(pedidos => {
-        // Ordenar por fecha (más reciente primero)
-        const pedidosOrdenados = [...pedidos].sort((a, b) => 
-            new Date(b.fechaCompleta) - new Date(a.fechaCompleta));
-        
-        let currentDateGroup = '';
-        
-        pedidosOrdenados.forEach(pedido => {
-            const pedidoDate = new Date(pedido.fechaCompleta);
-            const dateGroup = pedidoDate.toLocaleDateString('es-ES', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }).replace(/\b\w/g, l => l.toUpperCase());
-            
-            // Agregar separador de fecha si cambió
-            if (dateGroup !== currentDateGroup) {
-                currentDateGroup = dateGroup;
-                const dateRow = document.createElement('tr');
-                dateRow.className = 'date-group-header';
-                dateRow.innerHTML = `
-                    <td colspan="6" style="
-                        background-color: #f0f0f0;
-                        font-weight: bold;
-                        padding: 10px;
-                        font-size: 1.1em;
-                    ">
-                        📅 ${dateGroup}
-                    </td>
-                `;
-                tbody.appendChild(dateRow);
-            }
-            
-            // Fila del pedido
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${pedido.fecha}</td>
-                <td class="mobile-hidden">${pedido.cliente}</td>
-                <td>${pedido.telefono}</td>
-                <td>$${pedido.total}</td>
-                <td>
-                    <button class="btn-primary" onclick="viewOrderDetails(${pedido.id})">👁️</button>
-                    <button class="btn-secondary" onclick="editOrder(${pedido.id})">✏️</button>
-                    <button class="btn-danger" onclick="deleteOrder(${pedido.id})">❌</button>
-                </td>
-                <td>
-                    <button class="btn-warning" onclick="editOrderDate(${pedido.id})">📅</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    });
-}
-            
-
-            function viewOrderDetails(pedidoId) {
-                const transaction = db.transaction(['pedidos'], 'readonly');
-                const store = transaction.objectStore('pedidos');
-                const request = store.get(parseInt(pedidoId));
+            function viewPurchaseDetails(compraId) {
+                const transaction = db.transaction(['compras'], 'readonly');
+                const store = transaction.objectStore('compras');
+                const request = store.get(parseInt(compraId));
                 
                 request.onsuccess = function() {
-                    const pedido = request.result;
-                    if (!pedido) {
-                        showToast("⚠️ Pedido no encontrado", 'error');
+                    const compra = request.result;
+                    if (!compra) {
+                        showToast("⚠️ Gasto no encontrado", 'error');
                         return;
                     }
 
-                    let detalles = `📅 Fecha: ${pedido.fecha}\n`;
-                    detalles += `👤 Cliente: ${pedido.cliente}\n`;
-                    detalles += `📞 Teléfono: ${pedido.telefono}\n`;
-                    if (pedido.distrito) detalles += `📍 Distrito: ${pedido.distrito}\n`;
-                    detalles += `💳 Forma de Pago: ${pedido.formaPago}\n`;
-                    detalles += `⏰ Horario de Entrega: ${pedido.horarioEntrega}\n`;
-                    detalles += `🏠 Dirección: ${pedido.direccion}\n`;
-                    detalles += `🏷️ Tipo: ${pedido.tipoCliente}\n`;
-                    if (pedido.notas) detalles += `📝 Notas: ${pedido.notas}\n\n`;
-                    detalles += `🛒 Productos:\n`;
-                    
-                    pedido.productos.forEach(p => {
-                        detalles += `- ${p.producto}: $${p.precio} x ${p.cantidad} = $${p.subtotal}\n`;
-                    });
-                    
-                    detalles += `\n💵 Total: S/.${pedido.total}`;
+                    let detalles = `📅 Fecha: ${compra.fechaEmision}\n`;
+                    detalles += `🏷️ Tipo: ${compra.tipoGasto}\n`;
+                    detalles += `💰 Monto: $${compra.monto}\n`;
+                    if (compra.descripcion) detalles += `📝 Observaciones: ${compra.descripcion}\n`;
 
                     const modalContent = `
                         <div class="modal-content" style="max-width: 600px;">
                             <span class="close" onclick="closeModal('detailsModal')">&times;</span>
-                            <h2>Detalles del Pedido #${pedido.id}</h2>
+                            <h2>Detalles del Gasto #${compra.id}</h2>
                             <div class="section" style="white-space: pre-line; margin-bottom: 20px;">${detalles}</div>
                             <div class="button-group">
                                 <button class="btn-secondary" onclick="copyToClipboard(\`${detalles.replace(/`/g, '\\`')}\`)">📋 Copiar</button>
@@ -2682,55 +2143,148 @@ function updateTopFrequentProducts() {
                 };
                 
                 request.onerror = function(event) {
-                    console.error("Error al obtener pedido:", event.target.error);
-                    showToast("⚠️ Error al obtener pedido", 'error');
+                    console.error("Error al obtener gasto:", event.target.error);
+                    showToast("⚠️ Error al obtener gasto", 'error');
                 };
             }
 
-            function deleteOrder(pedidoId) {
-                if (confirm("¿Está seguro de eliminar este pedido?")) {
-                    deleteFromStore('pedidos', parseInt(pedidoId))
+            function deletePurchase(compraId) {
+                if (confirm("¿Está seguro de eliminar este gasto?")) {
+                    deleteFromStore('compras', parseInt(compraId))
                         .then(() => {
-                            refreshOrdersView();
+                            refreshPurchasesView();
                             
                             // Actualizar dashboard si está visible
                             if (document.getElementById('dashboardSection').style.display === 'block') {
                                 updateDashboard(currentPeriod);
                             }
                             
-                            showToast("✅ Pedido eliminado correctamente", 'success');
+                            showToast("✅ Gasto eliminado correctamente", 'success');
                         })
                         .catch(error => {
-                            console.error("Error al eliminar pedido:", error);
-                            showToast("⚠️ Error al eliminar pedido", 'error');
+                            console.error("Error al eliminar gasto:", error);
+                            showToast("⚠️ Error al eliminar gasto", 'error');
                         });
                 }
             }
 
             function resetDatabase() {
-                if (confirm("⚠️ ¿ESTÁS SEGURO? Esto borrará TODOS los clientes, productos y pedidos de forma permanente.")) {
-                    Promise.all([
-                        clearStore('clientes'),
-                        clearStore('productos'),
-                        clearStore('pedidos')
-                    ]).then(() => {
-                        // Actualizar la vista
-                        refreshOrdersView();
-                        document.getElementById('productBody').innerHTML = '';
-                        document.getElementById('totalPedido').textContent = "0.00";
-                        
-                        // Actualizar dashboard si está visible
-                        if (document.getElementById('dashboardSection').style.display === 'block') {
-                            updateDashboard(currentPeriod);
-                        }
-                        
-                        showToast("✅ Base de datos reiniciada completamente", 'success');
-                    }).catch(error => {
-                        console.error("Error al reiniciar base de datos:", error);
-                        showToast("⚠️ Error al reiniciar base de datos", 'error');
-                    });
+                if (confirm("⚠️ ¿ESTÁS SEGURO? Esto borrará TODOS los gastos de forma permanente.")) {
+                    clearStore('compras')
+                        .then(() => {
+                            // Actualizar la vista
+                            refreshPurchasesView();
+                            
+                            // Actualizar dashboard si está visible
+                            if (document.getElementById('dashboardSection').style.display === 'block') {
+                                updateDashboard(currentPeriod);
+                            }
+                            
+                            showToast("✅ Base de datos reiniciada completamente", 'success');
+                        }).catch(error => {
+                            console.error("Error al reiniciar base de datos:", error);
+                            showToast("⚠️ Error al reiniciar base de datos", 'error');
+                        });
                 }
             }
+
+            function filterPurchases(range) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const filterDate = document.getElementById('filterDate');
+                
+                getAllFromStore('compras').then(compras => {
+                    let filtered = compras;
+                    
+                    switch(range) {
+                        case 'today':
+                            filtered = compras.filter(c => {
+                                const compraDate = new Date(c.fechaEmisionCompleta);
+                                return compraDate >= today;
+                            });
+                            break;
+                            
+                        case 'week':
+                            const startOfWeek = new Date(today);
+                            startOfWeek.setDate(today.getDate() - today.getDay());
+                            filtered = compras.filter(c => {
+                                const compraDate = new Date(c.fechaEmisionCompleta);
+                                return compraDate >= startOfWeek;
+                            });
+                            break;
+                            
+                        case 'month':
+                            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                            filtered = compras.filter(c => {
+                                const compraDate = new Date(c.fechaEmisionCompleta);
+                                return compraDate >= startOfMonth;
+                            });
+                            break;
+                            
+                        case 'custom':
+                            const customDate = new Date(filterDate.value);
+                            if (isNaN(customDate.getTime())) return;
+                            
+                            const nextDay = new Date(customDate);
+                            nextDay.setDate(customDate.getDate() + 1);
+                            
+                            filtered = compras.filter(c => {
+                                const compraDate = new Date(c.fechaEmisionCompleta);
+                                return compraDate >= customDate && compraDate < nextDay;
+                            });
+                            break;
+                    }
+                    
+                    // Mostrar resultados filtrados
+                    const tbody = document.getElementById('purchasesBody');
+                    tbody.innerHTML = '';
+                    
+                    let currentDateGroup = '';
+                    
+                    filtered.sort((a, b) => new Date(b.fechaEmisionCompleta) - new Date(a.fechaEmisionCompleta))
+                        .forEach(compra => {
+                            const compraDate = new Date(compra.fechaEmisionCompleta);
+                            const dateGroup = compraDate.toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            }).replace(/\b\w/g, l => l.toUpperCase());
+                            
+                            if (dateGroup !== currentDateGroup) {
+                                currentDateGroup = dateGroup;
+                                const dateRow = document.createElement('tr');
+                                dateRow.className = 'date-group-header';
+                                dateRow.innerHTML = `
+                                    <td colspan="5" style="
+                                        background-color: #f0f0f0;
+                                        font-weight: bold;
+                                        padding: 10px;
+                                        font-size: 1.1em;
+                                    ">
+                                        📅 ${dateGroup}
+                                    </td>
+                                `;
+                                tbody.appendChild(dateRow);
+                            }
+                            
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${compra.fechaEmision}</td>
+                                <td class="mobile-hidden tipo-${compra.tipoGasto}">${compra.tipoGasto}</td>
+                                <td>$${compra.monto}</td>
+                                <td>${compra.descripcion || ''}</td>
+                                <td>
+                                    <button class="btn-primary" onclick="viewPurchaseDetails(${compra.id})">👁️</button>
+                                    <button class="btn-secondary" onclick="editPurchase(${compra.id})">✏️</button>
+                                    <button class="btn-danger" onclick="deletePurchase(${compra.id})">❌</button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                });
+            }         
 
             // ========== FUNCIONES AUXILIARES ========== //
 
@@ -2744,7 +2298,7 @@ function updateTopFrequentProducts() {
                 toast.textContent = message;
                 toast.style.display = 'block';
                 toast.style.backgroundColor = type === 'error' ? 'var(--danger-color)' : 
-                                             type === 'success' ? 'var(--primary-color)' : '#333';
+                                             type === 'success' ? 'var(--success-color)' : '#333';
                 
                 setTimeout(() => {
                     toast.style.display = 'none';
@@ -2791,157 +2345,6 @@ function updateTopFrequentProducts() {
                 }
             }
 
-function editOrderDate(pedidoId) {
-    const transaction = db.transaction(['pedidos'], 'readwrite');
-    const store = transaction.objectStore('pedidos');
-    const request = store.get(parseInt(pedidoId));
-    
-    request.onsuccess = function() {
-        const pedido = request.result;
-        if (!pedido) {
-            showToast("⚠️ Pedido no encontrado", 'error');
-            return;
-        }
-
-        const nuevaFecha = prompt("Ingrese la nueva fecha (Formato: DD-MM-AAAA):", pedido.fecha);
-        
-        if (nuevaFecha && nuevaFecha !== pedido.fecha) {
-            // Validar formato de fecha
-            if (!/^\d{2}-\d{2}-\d{4}$/.test(nuevaFecha)) {
-                showToast("⚠️ Formato de fecha inválido. Use DD-MM-AAAA", 'error');
-                return;
-            }
-
-            // Actualizar ambas representaciones de fecha
-            const [day, month, year] = nuevaFecha.split('-');
-            pedido.fecha = nuevaFecha;
-            pedido.fechaCompleta = new Date(year, month-1, day).toISOString();
-            
-            const updateRequest = store.put(pedido);
-            
-            updateRequest.onsuccess = function() {
-                refreshOrdersView();
-                if (document.getElementById('dashboardSection').style.display === 'block') {
-                    updateDashboard(currentPeriod);
-                }
-                showToast("✅ Fecha actualizada correctamente", 'success');
-            };
-            
-            updateRequest.onerror = function(event) {
-                console.error("Error al actualizar fecha:", event.target.error);
-                showToast("⚠️ Error al actualizar fecha", 'error');
-            };
-        }
-    };
-    
-    request.onerror = function(event) {
-        console.error("Error al obtener pedido:", event.target.error);
-        showToast("⚠️ Error al obtener pedido", 'error');
-    };
-}
-
-function filterOrders(range) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const filterDate = document.getElementById('filterDate');
-    
-    getAllFromStore('pedidos').then(pedidos => {
-        let filtered = pedidos;
-        
-        switch(range) {
-            case 'today':
-                filtered = pedidos.filter(p => {
-                    const pedidoDate = new Date(p.fechaCompleta);
-                    return pedidoDate >= today;
-                });
-                break;
-                
-            case 'week':
-                const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - today.getDay());
-                filtered = pedidos.filter(p => {
-                    const pedidoDate = new Date(p.fechaCompleta);
-                    return pedidoDate >= startOfWeek;
-                });
-                break;
-                
-            case 'month':
-                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                filtered = pedidos.filter(p => {
-                    const pedidoDate = new Date(p.fechaCompleta);
-                    return pedidoDate >= startOfMonth;
-                });
-                break;
-                
-            case 'custom':
-                const customDate = new Date(filterDate.value);
-                if (isNaN(customDate.getTime())) return;
-                
-                const nextDay = new Date(customDate);
-                nextDay.setDate(customDate.getDate() + 1);
-                
-                filtered = pedidos.filter(p => {
-                    const pedidoDate = new Date(p.fechaCompleta);
-                    return pedidoDate >= customDate && pedidoDate < nextDay;
-                });
-                break;
-        }
-        
-        // Mostrar resultados filtrados
-        const tbody = document.getElementById('ordersBody');
-        tbody.innerHTML = '';
-        
-        let currentDateGroup = '';
-        
-        filtered.sort((a, b) => new Date(b.fechaCompleta) - new Date(a.fechaCompleta))
-            .forEach(pedido => {
-                const pedidoDate = new Date(pedido.fechaCompleta);
-                const dateGroup = pedidoDate.toLocaleDateString('es-ES', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }).replace(/\b\w/g, l => l.toUpperCase());
-                
-                if (dateGroup !== currentDateGroup) {
-                    currentDateGroup = dateGroup;
-                    const dateRow = document.createElement('tr');
-                    dateRow.className = 'date-group-header';
-                    dateRow.innerHTML = `
-                        <td colspan="6" style="
-                            background-color: #f0f0f0;
-                            font-weight: bold;
-                            padding: 10px;
-                            font-size: 1.1em;
-                        ">
-                            📅 ${dateGroup}
-                        </td>
-                    `;
-                    tbody.appendChild(dateRow);
-                }
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${pedido.fecha}</td>
-                    <td class="mobile-hidden">${pedido.cliente}</td>
-                    <td>${pedido.telefono}</td>
-                    <td>$${pedido.total}</td>
-                    <td>
-                        <button class="btn-primary" onclick="viewOrderDetails(${pedido.id})">👁️</button>
-                        <button class="btn-secondary" onclick="editOrder(${pedido.id})">✏️</button>
-                        <button class="btn-danger" onclick="deleteOrder(${pedido.id})">❌</button>
-                    </td>
-                    <td>
-                        <button class="btn-warning" onclick="editOrderDate(${pedido.id})">📅</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-    });
-}
-
-
             function fallbackCopy(textarea) {
                 try {
                     const successful = document.execCommand('copy');
@@ -2954,27 +2357,54 @@ function filterOrders(range) {
                 }
             }
 
-            // Inicialización
-            document.addEventListener('DOMContentLoaded', function() {
-                initDB().then(() => {
-                    refreshOrdersView();
-                    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-                    
-                    // Configurar evento para el selector de datos
-                    document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
-                    
-                    // Agregar un producto de ejemplo si no hay productos
-                    getAllFromStore('productos').then(productos => {
-                        if (productos.length === 0) {
-                            addProductRow("Laptop", 12000);
-                        }
-                    });
-                }).catch(error => {
-                    console.error("Error al inicializar la base de datos:", error);
-                    showToast("⚠️ Error al inicializar la base de datos", 'error');
-                });
-            });
+const presupuestos = {
+    PlazaVea: 1000,
+    Restaurant: 500,
+    // ... otras categorías
+};
 
+function verificarPresupuesto(tipoGasto, monto) {
+    if (presupuestos[tipoGasto] && monto > presupuestos[tipoGasto]) {
+        showToast(`⚠️ Superaste el presupuesto de ${tipoGasto} ($${presupuestos[tipoGasto]})`, 'error');
+        // Marcar la fila en la tabla:
+        const rows = document.querySelectorAll("#purchasesBody tr");
+        rows.forEach(row => {
+            if (row.querySelector(".tipo-" + tipoGasto)) {
+                row.classList.add("tipo-PresupuestoExcedido");
+            }
+        });
+    }
+}
+
+            // Inicialización
+           document.addEventListener('DOMContentLoaded', function() {
+    initDB().then(() => {
+        refreshPurchasesView();
+
+
+        
+        // Inicializar fecha actual en el campo de fecha
+        const today = new Date();
+        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+        document.getElementById('fechaEmision').value = today.toISOString().slice(0, 10);
+        
+        // Configurar evento para el selector de datos
+        document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
+        
+        // Configurar evento para nuevo tipo de gasto
+       document.getElementById('tipoGasto').addEventListener('change', function() {
+    const nuevoTipoContainer = document.getElementById('nuevoTipoContainer');
+    nuevoTipoContainer.style.display = this.value === 'nuevo' ? 'block' : 'none';
+    if (this.value !== 'nuevo') {
+        document.getElementById('nuevoTipo').value = ''; // Limpia el campo
+    }
+});
+
+    }).catch(error => {
+        console.error("Error al inicializar la base de datos:", error);
+        showToast("⚠️ Error al inicializar la base de datos", 'error');
+    });
+});
             // Cerrar modales al hacer clic fuera
             window.onclick = function(event) {
                 if (event.target.className === 'modal') {
