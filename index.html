@@ -364,6 +364,28 @@
             border-bottom: 2px solid #ddd;
         }
         
+        /* Colores para tipos de gastos */
+        .tipo-PlazaVea { background-color: #4fc3f7; }
+        .tipo-Restaurant { background-color: #4db6ac; }
+        .tipo-Mass { background-color: #7986cb; }
+        .tipo-Pañales { background-color: #9575cd; }
+        .tipo-Propinas { background-color: #64b5f6; }
+        .tipo-Bodega { background-color: #4dd0e1; }
+        .tipo-Mercado { background-color: #81c784; }
+        .tipo-Gasolina { background-color: #ff8a65; }
+        .tipo-Reparaciones { background-color: #a1887f; }
+        .tipo-Regalos { background-color: #f06292; }
+        .tipo-Cumpleaños { background-color: #ba68c8; }
+        .tipo-Salud { background-color: #e57373; }
+        .tipo-Colegio { background-color: #ffd54f; }
+        .tipo-PresupuestoExcedido { background-color: #ffcdd2; }
+        /* Nuevos tipos de gasto */
+        .tipo-Panaderia { background-color: #a5d6a7; }
+        .tipo-Telefono { background-color: #90caf9; }
+        .tipo-Carne { background-color: #ef9a9a; }
+        .tipo-Gas { background-color: #b39ddb; }
+        .tipo-Netflix { background-color: #f48fb1; }
+        
         @media (min-width: 768px) {
             body {
                 padding: 20px;
@@ -394,6 +416,39 @@
             .modal-content {
                 margin: 5% auto;
                 padding: 20px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            /* Optimización para móviles */
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .stat-card .value {
+                font-size: 1.4rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .period-selector button {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .date-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-selector > div {
+                width: 100%;
             }
         }
         
@@ -429,22 +484,6 @@
             from {bottom: 20px; opacity: 1;}
             to {bottom: 0; opacity: 0;}
         }
-
-        /* Colores para tipos de gastos */
-        .tipo-PlazaVea { background-color: #4fc3f7; }
-        .tipo-Restaurant { background-color: #4db6ac; }
-        .tipo-Mass { background-color: #7986cb; }
-        .tipo-Pañales { background-color: #9575cd; }
-        .tipo-Propinas { background-color: #64b5f6; }
-        .tipo-Bodega { background-color: #4dd0e1; }
-        .tipo-Mercado { background-color: #81c784; }
-        .tipo-Gasolina { background-color: #ff8a65; }
-        .tipo-Reparaciones { background-color: #a1887f; }
-        .tipo-Regalos { background-color: #f06292; }
-        .tipo-Cumpleaños { background-color: #ba68c8; }
-        .tipo-Salud { background-color: #e57373; }
-	.tipo-Colegio { background-color: #ffd54f; } /* Amarillo más fuerte */
-	.tipo-PresupuestoExcedido { background-color: #ffcdd2; } /* Rojo claro */
     </style>
 </head>
 <body>
@@ -527,7 +566,7 @@
                 </div>
             </div>
             
-            <h3>🏆 Top 5 Categorías</h3>
+            <h3>🏆 Top 15 Categorías</h3>
             <div class="table-responsive">
                 <table id="topSuppliersTable">
                     <thead>
@@ -570,17 +609,23 @@
                                 <option value="Regalos">Regalos</option>
                                 <option value="Cumpleaños">Cumpleaños</option>
                                 <option value="Salud">Salud</option>
-				<option value="Colegio">Colegio</option>
-    <!-- Nueva opción para agregar nuevos tipos -->
-    <option value="nuevo">➕ Agregar nuevo tipo</option>
+                                <option value="Colegio">Colegio</option>
+                                <!-- Nuevos tipos de gasto -->
+                                <option value="Panaderia">Panadería</option>
+                                <option value="Telefono">Teléfono</option>
+                                <option value="Carne">Carne</option>
+                                <option value="Gas">Gas</option>
+                                <option value="Netflix">Netflix</option>
+                                <!-- Opción para agregar nuevos tipos -->
+                                <option value="nuevo">➕ Agregar nuevo tipo</option>
                             </select>
                         </div>
                     </div>
 
-<div id="nuevoTipoContainer" style="display: none;">
-    <label for="nuevoTipo">Nuevo tipo de gasto:</label>
-    <input type="text" id="nuevoTipo" placeholder="Ingrese el nuevo tipo de gasto">
-</div>
+                    <div id="nuevoTipoContainer" style="display: none;">
+                        <label for="nuevoTipo">Nuevo tipo de gasto:</label>
+                        <input type="text" id="nuevoTipo" placeholder="Ingrese el nuevo tipo de gasto">
+                    </div>
                     
                     <div class="form-group">
                         <label for="monto">Monto Total:</label>
@@ -1202,32 +1247,36 @@
                         // Colores para cada categoría
                         const colors = labels.map(label => {
                             const colorMap = {
-    'PlazaVea': '#4fc3f7',
-    'Restaurant': '#4db6ac',
-    'Mass': '#7986cb',
-    'Pañales': '#9575cd',
-    'Propinas': '#64b5f6',
-    'Bodega': '#4dd0e1',
-    'Mercado': '#81c784',
-    'Gasolina': '#ff8a65',
-    'Reparaciones': '#a1887f',
-    'Regalos': '#f06292',
-    'Cumpleaños': '#ba68c8',
-    'Salud': '#e57373',
-    'Colegio': '#ffd54f'
-};
-return colorMap[label] || getRandomColor();
+                                'PlazaVea': '#4fc3f7',
+                                'Restaurant': '#4db6ac',
+                                'Mass': '#7986cb',
+                                'Pañales': '#9575cd',
+                                'Propinas': '#64b5f6',
+                                'Bodega': '#4dd0e1',
+                                'Mercado': '#81c784',
+                                'Gasolina': '#ff8a65',
+                                'Reparaciones': '#a1887f',
+                                'Regalos': '#f06292',
+                                'Cumpleaños': '#ba68c8',
+                                'Salud': '#e57373',
+                                'Colegio': '#ffd54f',
+                                'Panaderia': '#a5d6a7',
+                                'Telefono': '#90caf9',
+                                'Carne': '#ef9a9a',
+                                'Gas': '#b39ddb',
+                                'Netflix': '#f48fb1'
+                            };
+                            return colorMap[label] || getRandomColor();
                         });
 
-function getRandomColor() {
-    // Genera un color aleatorio para nuevos tipos
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
+                        function getRandomColor() {
+                            const letters = '0123456789ABCDEF';
+                            let color = '#';
+                            for (let i = 0; i < 6; i++) {
+                                color += letters[Math.floor(Math.random() * 16)];
+                            }
+                            return color;
+                        }
                         
                         resolve({ labels, data, colors });
                     };
@@ -1383,7 +1432,7 @@ function getRandomColor() {
                     
                     const sortedCategories = Object.entries(categoryStats)
                         .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 5);
+                        .slice(0,10);
                     
                     const tbody = document.getElementById('topSuppliersBody');
                     tbody.innerHTML = '';
@@ -1436,7 +1485,7 @@ function getRandomColor() {
                         html += `</tr></thead><tbody>`;
                         
                         // Primeras 5 filas
-                        jsonData.slice(0, 5).forEach(row => {
+                        jsonData.slice(0, 15).forEach(row => {
                             html += `<tr>`;
                             Object.values(row).forEach(val => {
                                 html += `<td>${val || ''}</td>`;
@@ -1796,19 +1845,19 @@ function getRandomColor() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
-    const backupData = JSON.parse(e.target.result);
-    // Validación básica:
-    if (!backupData.compras || !Array.isArray(backupData.compras)) {
-        throw new Error("El archivo no contiene datos válidos de gastos");
-    }
-    // Verifica que los campos obligatorios estén en cada gasto:
-    const isValid = backupData.compras.every(compra => 
-        compra.tipoGasto && compra.monto && compra.fechaEmision
-    );
-    if (!isValid) {
-        throw new Error("Estructura de datos incompleta");
-    }
-                        
+                        const backupData = JSON.parse(e.target.result);
+                        // Validación básica:
+                        if (!backupData.compras || !Array.isArray(backupData.compras)) {
+                            throw new Error("El archivo no contiene datos válidos de gastos");
+                        }
+                        // Verifica que los campos obligatorios estén en cada gasto:
+                        const isValid = backupData.compras.every(compra => 
+                            compra.tipoGasto && compra.monto && compra.fechaEmision
+                        );
+                        if (!isValid) {
+                            throw new Error("Estructura de datos incompleta");
+                        }
+                                
                         // Limpiar las bases de datos existentes
                         clearStore('compras').then(() => {
                             // Importar los nuevos datos
@@ -1858,21 +1907,21 @@ function getRandomColor() {
                 const monto = parseFloat(document.getElementById('monto').value);
                 const fechaEmisionInput = document.getElementById('fechaEmision').value;
 
-if (monto <= 0) {
-    showToast("⚠️ El monto debe ser mayor a cero", 'error');
-    document.getElementById('monto').focus();
-    return;
-}
+                if (monto <= 0) {
+                    showToast("⚠️ El monto debe ser mayor a cero", 'error');
+                    document.getElementById('monto').focus();
+                    return;
+                }
 
-// Manejar nuevo tipo de gasto
-    if (tipoGasto === 'nuevo') {
-    tipoGasto = document.getElementById('nuevoTipo').value.trim();
-    if (!tipoGasto) {
-        showToast("⚠️ Por favor ingrese el nuevo tipo de gasto", 'error');
-        document.getElementById('nuevoTipo').focus();
-        return;
-    }
-    }
+                // Manejar nuevo tipo de gasto
+                if (tipoGasto === 'nuevo') {
+                    tipoGasto = document.getElementById('nuevoTipo').value.trim();
+                    if (!tipoGasto) {
+                        showToast("⚠️ Por favor ingrese el nuevo tipo de gasto", 'error');
+                        document.getElementById('nuevoTipo').focus();
+                        return;
+                    }
+                }
                 
                 if (!tipoGasto) {
                     showToast("⚠️ Por favor seleccione el tipo de gasto", 'error');
@@ -1906,9 +1955,6 @@ if (monto <= 0) {
                 // Obtener otros campos
                 const descripcion = document.getElementById('descripcion').value.trim();
 
-
-
-                
                 // Verificar si estamos editando un gasto existente
                 const editingPurchaseId = document.getElementById('editingPurchaseId').value;
                 
@@ -1930,9 +1976,8 @@ if (monto <= 0) {
                         descripcion,
                         fechaEmisionFormateada,
                         fechaEmision.toISOString()
-                    )
-verificarPresupuesto(tipoGasto, monto);
-
+                    );
+                    verificarPresupuesto(tipoGasto, monto);
                 }
             }
 
@@ -2357,54 +2402,68 @@ verificarPresupuesto(tipoGasto, monto);
                 }
             }
 
-const presupuestos = {
-    PlazaVea: 1000,
-    Restaurant: 500,
-    // ... otras categorías
-};
+            const presupuestos = {
+                PlazaVea: 1000,
+                Restaurant: 500,
+                Mass: 300,
+                Pañales: 200,
+                Propinas: 150,
+                Bodega: 400,
+                Mercado: 800,
+                Gasolina: 600,
+                Reparaciones: 300,
+                Regalos: 200,
+                Cumpleaños: 300,
+                Salud: 500,
+                Colegio: 700,
+                Panaderia: 150,
+                Telefono: 200,
+                Carne: 400,
+                Gas: 250,
+                Netflix: 50
+            };
 
-function verificarPresupuesto(tipoGasto, monto) {
-    if (presupuestos[tipoGasto] && monto > presupuestos[tipoGasto]) {
-        showToast(`⚠️ Superaste el presupuesto de ${tipoGasto} ($${presupuestos[tipoGasto]})`, 'error');
-        // Marcar la fila en la tabla:
-        const rows = document.querySelectorAll("#purchasesBody tr");
-        rows.forEach(row => {
-            if (row.querySelector(".tipo-" + tipoGasto)) {
-                row.classList.add("tipo-PresupuestoExcedido");
+            function verificarPresupuesto(tipoGasto, monto) {
+                if (presupuestos[tipoGasto] && monto > presupuestos[tipoGasto]) {
+                    showToast(`⚠️ Superaste el presupuesto de ${tipoGasto} ($${presupuestos[tipoGasto]})`, 'error');
+                    // Marcar la fila en la tabla:
+                    const rows = document.querySelectorAll("#purchasesBody tr");
+                    rows.forEach(row => {
+                        if (row.querySelector(".tipo-" + tipoGasto)) {
+                            row.classList.add("tipo-PresupuestoExcedido");
+                        }
+                    });
+                }
             }
-        });
-    }
-}
 
             // Inicialización
-           document.addEventListener('DOMContentLoaded', function() {
-    initDB().then(() => {
-        refreshPurchasesView();
+            document.addEventListener('DOMContentLoaded', function() {
+                initDB().then(() => {
+                    refreshPurchasesView();
 
+                    // Inicializar fecha actual en el campo de fecha
+                    const today = new Date();
+                    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+                    document.getElementById('fechaEmision').value = today.toISOString().slice(0, 10);
+                    
+                    // Configurar evento para el selector de datos
+                    document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
+                    
+                    // Configurar evento para nuevo tipo de gasto
+                    document.getElementById('tipoGasto').addEventListener('change', function() {
+                        const nuevoTipoContainer = document.getElementById('nuevoTipoContainer');
+                        nuevoTipoContainer.style.display = this.value === 'nuevo' ? 'block' : 'none';
+                        if (this.value !== 'nuevo') {
+                            document.getElementById('nuevoTipo').value = ''; // Limpia el campo
+                        }
+                    });
 
-        
-        // Inicializar fecha actual en el campo de fecha
-        const today = new Date();
-        today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-        document.getElementById('fechaEmision').value = today.toISOString().slice(0, 10);
-        
-        // Configurar evento para el selector de datos
-        document.getElementById('dataViewSelector').addEventListener('change', loadDataView);
-        
-        // Configurar evento para nuevo tipo de gasto
-       document.getElementById('tipoGasto').addEventListener('change', function() {
-    const nuevoTipoContainer = document.getElementById('nuevoTipoContainer');
-    nuevoTipoContainer.style.display = this.value === 'nuevo' ? 'block' : 'none';
-    if (this.value !== 'nuevo') {
-        document.getElementById('nuevoTipo').value = ''; // Limpia el campo
-    }
-});
-
-    }).catch(error => {
-        console.error("Error al inicializar la base de datos:", error);
-        showToast("⚠️ Error al inicializar la base de datos", 'error');
-    });
-});
+                }).catch(error => {
+                    console.error("Error al inicializar la base de datos:", error);
+                    showToast("⚠️ Error al inicializar la base de datos", 'error');
+                });
+            });
+            
             // Cerrar modales al hacer clic fuera
             window.onclick = function(event) {
                 if (event.target.className === 'modal') {
