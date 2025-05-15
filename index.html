@@ -385,6 +385,7 @@
         .tipo-Carne { background-color: #ef9a9a; }
         .tipo-Gas { background-color: #b39ddb; }
         .tipo-Netflix { background-color: #f48fb1; }
+	.tipo-TiendasRetail { background-color: #ffab91; } /* Naranja claro */
         
         @media (min-width: 768px) {
             body {
@@ -484,6 +485,21 @@
             from {bottom: 20px; opacity: 1;}
             to {bottom: 0; opacity: 0;}
         }
+
+/* Agregar esto en la sección de estilos */
+#topCategoriesTable {
+    margin-top: 20px;
+}
+
+#topCategoriesTable th {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+#topCategoriesTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
     </style>
 </head>
 <body>
@@ -566,20 +582,41 @@
                 </div>
             </div>
             
-            <h3>🏆 Top 15 Categorías</h3>
-            <div class="table-responsive">
-                <table id="topSuppliersTable">
-                    <thead>
-                        <tr>
-                            <th>Categoría</th>
-                            <th>Gastos</th>
-                            <th>Total Gastado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="topSuppliersBody"></tbody>
-                </table>
-            </div>
+           <h3>🏆 Top 10 Gastos (Mayor a Menor)</h3>
+<div class="table-responsive">
+    <table id="topSuppliersTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Categoría</th>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Observaciones</th>
+            </tr>
+        </thead>
+        <tbody id="topSuppliersBody"></tbody>
+    </table>
+</div>
+
+<h3>🏆 Top 10 Categorías (Mayor Gasto)</h3>
+<div class="table-responsive">
+    <table id="topCategoriesTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Categoría</th>
+                <th>Total Gastado</th>
+                <th>Cantidad</th>
+                <th>Promedio</th>
+            </tr>
+        </thead>
+        <tbody id="topCategoriesBody"></tbody>
+    </table>
+</div>
         </div>
+
+
+
 
         <!-- Sección principal (formulario y lista de gastos) -->
         <div id="mainSection">
@@ -616,6 +653,7 @@
                                 <option value="Carne">Carne</option>
                                 <option value="Gas">Gas</option>
                                 <option value="Netflix">Netflix</option>
+				<option value="TiendasRetail">Tiendas Retail</option>
                                 <!-- Opción para agregar nuevos tipos -->
                                 <option value="nuevo">➕ Agregar nuevo tipo</option>
                             </select>
@@ -909,77 +947,146 @@
                 return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
             }
 
-            function updateDashboard(period, specificDate = null) {
-                currentPeriod = period;
-                currentSpecificDate = specificDate || null;
-                
-                // Mostrar/ocultar selectores de fecha específica
-                document.getElementById('dateSelectorContainer').style.display = 'none';
-                document.getElementById('daySelector').style.display = 'none';
-                document.getElementById('weekSelector').style.display = 'none';
-                document.getElementById('monthSelector').style.display = 'none';
-                document.getElementById('yearSelector').style.display = 'none';
-                
-                if (period === 'day') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('daySelector').style.display = 'block';
-                } else if (period === 'week') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('weekSelector').style.display = 'block';
-                } else if (period === 'month') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('monthSelector').style.display = 'block';
-                } else if (period === 'year') {
-                    document.getElementById('dateSelectorContainer').style.display = 'flex';
-                    document.getElementById('yearSelector').style.display = 'block';
-                }
-                
-                updateExpensesChart(period, specificDate);
-                updateExpensesByCategoryChart(period, specificDate);
-                updateStats(period, specificDate);
-                updateTopCategories();
-            }
+        function updateDashboard(period, specificDate = null) {
+    currentPeriod = period;
+    currentSpecificDate = specificDate || null;
+    
+    // Mostrar/ocultar selectores de fecha específica
+    document.getElementById('dateSelectorContainer').style.display = 'none';
+    document.getElementById('daySelector').style.display = 'none';
+    document.getElementById('weekSelector').style.display = 'none';
+    document.getElementById('monthSelector').style.display = 'none';
+    document.getElementById('yearSelector').style.display = 'none';
+    
+    if (period === 'day') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('daySelector').style.display = 'block';
+    } else if (period === 'week') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('weekSelector').style.display = 'block';
+    } else if (period === 'month') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('monthSelector').style.display = 'block';
+    } else if (period === 'year') {
+        document.getElementById('dateSelectorContainer').style.display = 'flex';
+        document.getElementById('yearSelector').style.display = 'block';
+    }
+    
+    updateExpensesChart(period, specificDate);
+    updateExpensesByCategoryChart(period, specificDate);
+    updateStats(period, specificDate);
+    updateTopExpenses(period, specificDate);  // Actualiza Top 10 Gastos
+    updateTopCategories(period, specificDate); // Actualiza Top 10 Categorías
+}
+
+function updateTopExpenses(period, specificDate = null) {
+    const now = specificDate || new Date();
+    let filteredCompras = [];
+    
+    const transaction = db.transaction(['compras'], 'readonly');
+    const store = transaction.objectStore('compras');
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const compras = request.result || [];
+        
+        // Filtrar por período
+        if (period === 'day') {
+            const dayStart = new Date(now);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(dayStart);
+            dayEnd.setDate(dayStart.getDate() + 1);
+            
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate >= dayStart && purchaseDate < dayEnd;
+            });
+        }
+        else if (period === 'week') {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate >= startOfWeek && purchaseDate <= endOfWeek;
+            });
+        } 
+        else if (period === 'month') {
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate.getMonth() === now.getMonth() && 
+                       purchaseDate.getFullYear() === now.getFullYear();
+            });
+        } 
+        else if (period === 'year') {
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate.getFullYear() === now.getFullYear();
+            });
+        } 
+        else {
+            filteredCompras = [...compras];
+        }
+        
+        // Ordenar por monto (de mayor a menor) y tomar los 10 primeros
+        const topExpenses = [...filteredCompras]
+            .sort((a, b) => parseFloat(b.monto) - parseFloat(a.monto))
+            .slice(0, 10);
+        
+        // Mostrar en la tabla
+        const tbody = document.getElementById('topSuppliersBody');
+        tbody.innerHTML = '';
+        
+        topExpenses.forEach((compra, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="tipo-${compra.tipoGasto}">${compra.tipoGasto}</td>
+                <td>${compra.fechaEmision}</td>
+                <td>$${parseFloat(compra.monto).toFixed(2)}</td>
+                <td>${compra.descripcion || ''}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
             
             function updateSpecificPeriod(period) {
-                currentPeriod = period;
-                
-                if (period === 'day') {
-                    const dayInput = document.getElementById('specificDay').value;
-                    if (dayInput) {
-                        const [year, month, day] = dayInput.split('-');
-                        currentSpecificDate = new Date(year, month - 1, day);
-                        currentSpecificDate.setHours(0, 0, 0, 0);
-                        
-                        updateExpensesChart(period, currentSpecificDate);
-                        updateStats(period, currentSpecificDate);
-                    }
-                } else if (period === 'week') {
-                    const weekInput = document.getElementById('specificWeek').value;
-                    if (weekInput) {
-                        const [year, week] = weekInput.split('-W');
-                        currentSpecificDate = getDateOfWeek(parseInt(week), parseInt(year));
-                        updateExpensesChart(period, currentSpecificDate);
-                        updateStats(period, currentSpecificDate);
-                    }
-                } else if (period === 'month') {
-                    const monthInput = document.getElementById('specificMonth').value;
-                    if (monthInput) {
-                        const [year, month] = monthInput.split('-');
-                        currentSpecificDate = new Date(year, parseInt(month) - 1, 1);
-                        updateExpensesChart(period, currentSpecificDate);
-                        updateStats(period, currentSpecificDate);
-                    }
-                } else if (period === 'year') {
-                    const yearInput = document.getElementById('specificYear').value;
-                    if (yearInput) {
-                        currentSpecificDate = new Date(yearInput, 0, 1);
-                        updateExpensesChart(period, currentSpecificDate);
-                        updateStats(period, currentSpecificDate);
-                    }
-                }
-                
-                updateTopCategories();
-            }
+    currentPeriod = period;
+    
+    if (period === 'day') {
+        const dayInput = document.getElementById('specificDay').value;
+        if (dayInput) {
+            const [year, month, day] = dayInput.split('-');
+            currentSpecificDate = new Date(year, month - 1, day);
+            currentSpecificDate.setHours(0, 0, 0, 0);
+            updateDashboard(period, currentSpecificDate);
+        }
+    } else if (period === 'week') {
+        const weekInput = document.getElementById('specificWeek').value;
+        if (weekInput) {
+            const [year, week] = weekInput.split('-W');
+            currentSpecificDate = getDateOfWeek(parseInt(week), parseInt(year));
+            updateDashboard(period, currentSpecificDate);
+        }
+    } else if (period === 'month') {
+        const monthInput = document.getElementById('specificMonth').value;
+        if (monthInput) {
+            const [year, month] = monthInput.split('-');
+            currentSpecificDate = new Date(year, parseInt(month) - 1, 1);
+            updateDashboard(period, currentSpecificDate);
+        }
+    } else if (period === 'year') {
+        const yearInput = document.getElementById('specificYear').value;
+        if (yearInput) {
+            currentSpecificDate = new Date(yearInput, 0, 1);
+            updateDashboard(period, currentSpecificDate);
+        }
+    }
+}
+    
             
             function getDateOfWeek(week, year) {
                 const simple = new Date(year, 0, 1 + (week - 1) * 7);
@@ -1264,7 +1371,8 @@
                                 'Telefono': '#90caf9',
                                 'Carne': '#ef9a9a',
                                 'Gas': '#b39ddb',
-                                'Netflix': '#f48fb1'
+                                'Netflix': '#f48fb1',
+				 'TiendasRetail': '#ffab91' // Nueva categoría
                             };
                             return colorMap[label] || getRandomColor();
                         });
@@ -1445,9 +1553,84 @@
                             <td>$${stats.total.toFixed(2)}</td>
                         `;
                         tbody.appendChild(row);
-                    });
+                      });
                 };
             }
+
+function updateTopCategories(period, specificDate = null) {
+    const now = specificDate || new Date();
+    const categoryStats = {};
+    
+    const transaction = db.transaction(['compras'], 'readonly');
+    const store = transaction.objectStore('compras');
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const compras = request.result || [];
+        
+        // Filtrar por período si es necesario
+        let filteredCompras = compras;
+        if (period !== 'all') {
+            filteredCompras = compras.filter(c => {
+                const compraDate = new Date(c.fechaEmisionCompleta);
+                
+                if (period === 'day') {
+                    return compraDate.getDate() === now.getDate() && 
+                           compraDate.getMonth() === now.getMonth() && 
+                           compraDate.getFullYear() === now.getFullYear();
+                } else if (period === 'week') {
+                    const startOfWeek = new Date(now);
+                    startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 6);
+                    return compraDate >= startOfWeek && compraDate <= endOfWeek;
+                } else if (period === 'month') {
+                    return compraDate.getMonth() === now.getMonth() && 
+                           compraDate.getFullYear() === now.getFullYear();
+                } else if (period === 'year') {
+                    return compraDate.getFullYear() === now.getFullYear();
+                }
+                return true;
+            });
+        }
+        
+        // Calcular estadísticas por categoría
+        filteredCompras.forEach(compra => {
+            if (!categoryStats[compra.tipoGasto]) {
+                categoryStats[compra.tipoGasto] = {
+                    total: 0,
+                    count: 0
+                };
+            }
+            
+            categoryStats[compra.tipoGasto].total += parseFloat(compra.monto);
+            categoryStats[compra.tipoGasto].count++;
+        });
+        
+        // Ordenar por total gastado (de mayor a menor) y tomar las 10 primeras
+        const sortedCategories = Object.entries(categoryStats)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 10);
+        
+        // Mostrar en la tabla
+        const tbody = document.getElementById('topCategoriesBody');
+        tbody.innerHTML = '';
+        
+        sortedCategories.forEach(([name, stats], index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="tipo-${name}">${name}</td>
+                <td>$${stats.total.toFixed(2)}</td>
+                <td>${stats.count}</td>
+                <td>$${(stats.total / stats.count).toFixed(2)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
+
+
 
             // ========== FUNCIONES DE IMPORTACIÓN/EXPORTACIÓN ========== //
 
@@ -2390,6 +2573,81 @@
                 }
             }
 
+function updatePurchasesList(period, specificDate = null) {
+    const now = specificDate || new Date();
+    let filteredCompras = [];
+    
+    const transaction = db.transaction(['compras'], 'readonly');
+    const store = transaction.objectStore('compras');
+    const request = store.getAll();
+    
+    request.onsuccess = function() {
+        const compras = request.result || [];
+        
+        // Filtrar por período
+        if (period === 'day') {
+            const dayStart = new Date(now);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(dayStart);
+            dayEnd.setDate(dayStart.getDate() + 1);
+            
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate >= dayStart && purchaseDate < dayEnd;
+            });
+        }
+        else if (period === 'week') {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate >= startOfWeek && purchaseDate <= endOfWeek;
+            });
+        } 
+        else if (period === 'month') {
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate.getMonth() === now.getMonth() && 
+                       purchaseDate.getFullYear() === now.getFullYear();
+            });
+        } 
+        else if (period === 'year') {
+            filteredCompras = compras.filter(p => {
+                const purchaseDate = new Date(p.fechaEmisionCompleta);
+                return purchaseDate.getFullYear() === now.getFullYear();
+            });
+        } 
+        else {
+            filteredCompras = [...compras];
+        }
+        
+        // Ordenar por monto (de mayor a menor) y tomar los 10 primeros
+        const topExpenses = [...filteredCompras]
+            .sort((a, b) => parseFloat(b.monto) - parseFloat(a.monto))
+            .slice(0, 10);
+        
+        // Mostrar en la tabla
+        const tbody = document.getElementById('topSuppliersBody');
+        tbody.innerHTML = '';
+        
+        topExpenses.forEach((compra, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="tipo-${compra.tipoGasto}">${compra.tipoGasto}</td>
+                <td>${compra.fechaEmision}</td>
+                <td>$${parseFloat(compra.monto).toFixed(2)}</td>
+                <td>${compra.descripcion || ''}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+}
+
+
             function fallbackCopy(textarea) {
                 try {
                     const successful = document.execCommand('copy');
@@ -2420,7 +2678,8 @@
                 Telefono: 200,
                 Carne: 400,
                 Gas: 250,
-                Netflix: 50
+                Netflix: 50,
+		TiendasRetail: 600 // Nuevo presupuesto
             };
 
             function verificarPresupuesto(tipoGasto, monto) {
